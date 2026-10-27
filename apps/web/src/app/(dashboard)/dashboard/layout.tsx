@@ -5,6 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, BookOpen, Users, Award, ShieldCheck, User, LogOut, FileText, CheckSquare } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/axios';
+import Cookies from 'js-cookie';
+import toast from 'react-hot-toast';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -17,9 +19,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     });
   }, [router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    router.push('/auth/login');
+  const handleLogout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (error) {
+      toast.error('Sesi server tidak dapat diakhiri. Token lokal tetap dihapus.');
+    } finally {
+      Cookies.remove('token');
+      router.replace('/auth/login');
+      router.refresh();
+    }
   };
 
   const role = user?.role; // 'STUDENT' | 'INSTRUCTOR' | 'ADMIN'
@@ -86,6 +95,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </Link>
                 <Link href="/dashboard/admin/users" className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${pathname.includes('/admin/users') ? 'bg-[#0033FF] text-white shadow-lg shadow-[#0033FF]/30' : 'text-white/70 hover:bg-white/5'}`}>
                   <Users className="w-4 h-4" /> Manajemen Pengguna
+                </Link>
+                <Link href="/dashboard/admin/certificates" className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${pathname.includes('/admin/certificates') ? 'bg-[#0033FF] text-white shadow-lg shadow-[#0033FF]/30' : 'text-white/70 hover:bg-white/5'}`}>
+                  <Award className="w-4 h-4" /> Sertifikat
                 </Link>
               </>
             )}

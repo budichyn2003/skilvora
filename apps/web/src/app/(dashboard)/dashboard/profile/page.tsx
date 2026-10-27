@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { User, Mail, MapPin, Phone, Camera, Save } from 'lucide-react';
+import { User, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Button } from '@/components/ui/button';
@@ -12,11 +12,8 @@ export default function ProfileSettingsPage() {
   const [profile, setProfile] = useState({
     name: '',
     email: '',
-    role: '',
     profilePicture: '',
-    address: '',
-    phone: '',
-    bio: ''
+    role: '',
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -29,9 +26,6 @@ export default function ProfileSettingsPage() {
           email: res.data.email || '',
           role: res.data.role || '',
           profilePicture: res.data.profilePicture || '',
-          address: res.data.address || '',
-          phone: res.data.phone || '',
-          bio: res.data.bio || ''
         });
       })
       .finally(() => setIsLoading(false));
@@ -45,7 +39,10 @@ export default function ProfileSettingsPage() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await api.patch('/auth/profile', profile);
+      await api.patch('/auth/profile', {
+        name: profile.name,
+        profilePicture: profile.profilePicture,
+      });
       toast.success('Profil berhasil diperbarui!');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Gagal menyimpan profil');
@@ -60,7 +57,7 @@ export default function ProfileSettingsPage() {
     <div className="max-w-4xl space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-[#00033D] mb-2">Pengaturan Profil</h1>
-        <p className="text-[#00033D]/70">Kelola informasi pribadi, foto, dan alamat akun Anda.</p>
+        <p className="text-[#00033D]/70">Kelola nama dan foto profil akun Anda.</p>
       </div>
 
       <GlassCard className="p-8">
@@ -76,7 +73,7 @@ export default function ProfileSettingsPage() {
             </div>
             <div>
               <h3 className="font-bold text-[#00033D] mb-1">Foto Profil</h3>
-              <p className="text-xs text-[#00033D]/60 mb-3">Masukkan URL gambar atau tautan foto profil Anda.</p>
+              <p className="text-xs text-[#00033D]/60 mb-3">Masukkan URL gambar profil Anda.</p>
               <Input 
                 name="profilePicture" 
                 placeholder="https://example.com/foto.jpg" 
@@ -107,16 +104,6 @@ export default function ProfileSettingsPage() {
             </div>
 
             <div>
-              <label className="text-sm font-bold text-[#00033D] block mb-2">Nomor Telepon / WhatsApp</label>
-              <Input 
-                name="phone" 
-                placeholder="08123456789" 
-                value={profile.phone} 
-                onChange={handleChange} 
-              />
-            </div>
-
-            <div>
               <label className="text-sm font-bold text-[#00033D] block mb-2">Role Akun</label>
               <Input 
                 value={profile.role} 
@@ -124,28 +111,6 @@ export default function ProfileSettingsPage() {
                 className="bg-gray-100 text-gray-500 cursor-not-allowed uppercase font-bold" 
               />
             </div>
-          </div>
-
-          <div>
-            <label className="text-sm font-bold text-[#00033D] block mb-2">Alamat Domisili</label>
-            <Input 
-              name="address" 
-              placeholder="Contoh: Jakarta Selatan, DKI Jakarta" 
-              value={profile.address} 
-              onChange={handleChange} 
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-bold text-[#00033D] block mb-2">Bio Singkat / Tentang Anda</label>
-            <textarea 
-              name="bio" 
-              rows={3}
-              className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              placeholder="Ceritakan sedikit tentang latar belakang atau keahlian Anda..."
-              value={profile.bio} 
-              onChange={handleChange}
-            />
           </div>
 
           <div className="flex justify-end pt-4">

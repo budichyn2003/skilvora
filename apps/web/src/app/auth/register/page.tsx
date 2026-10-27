@@ -36,7 +36,7 @@ export default function RegisterPage() {
         email: formData.email,
         password: formData.password,
       });
-      toast.success('Akun berhasil dibuat! Silakan masuk.');
+      toast.success('Akun dibuat. Periksa email untuk memverifikasi akun sebelum masuk.');
       router.push('/auth/login');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Gagal mendaftar akun');

@@ -7,12 +7,13 @@ export function proxy(request: NextRequest) {
   
   const isAuthPage = request.nextUrl.pathname.startsWith('/auth');
   const isDashboardPage = request.nextUrl.pathname.startsWith('/dashboard');
+  const isOAuthCallback = request.nextUrl.pathname === '/auth/callback';
 
   if (!token && isDashboardPage) {
     return NextResponse.redirect(new URL('/auth/login', request.url));
   }
 
-  if (token && isAuthPage) {
+  if (token && isAuthPage && !isOAuthCallback) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 

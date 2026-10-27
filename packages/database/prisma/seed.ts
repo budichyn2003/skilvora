@@ -6,40 +6,51 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Memulai seeding database...');
 
-  // Hashing default password
-  const defaultPassword = await bcrypt.hash('password123', 10);
+  const hashSeedPassword = async (variable: string) => {
+    const password = process.env[variable];
+    if (!password || password.length < 8) {
+      throw new Error(`${variable} wajib diisi dengan password minimal 8 karakter`);
+    }
+    return bcrypt.hash(password, 10);
+  };
+  const adminPassword = await hashSeedPassword('SEED_ADMIN_PASSWORD');
+  const instructorPassword = await hashSeedPassword('SEED_INSTRUCTOR_PASSWORD');
+  const studentPassword = await hashSeedPassword('SEED_STUDENT_PASSWORD');
 
   // 1. Buat Akun Users
   const admin = await prisma.user.upsert({
     where: { email: 'admin@skilvora.com' },
-    update: {},
+    update: { password: adminPassword, emailVerifiedAt: new Date() },
     create: {
       email: 'admin@skilvora.com',
       name: 'Admin Skilvora',
-      password: defaultPassword,
+      password: adminPassword,
       role: Role.ADMIN,
+      emailVerifiedAt: new Date(),
     },
   });
 
   const instructor = await prisma.user.upsert({
     where: { email: 'instruktur@skilvora.com' },
-    update: {},
+    update: { password: instructorPassword, emailVerifiedAt: new Date() },
     create: {
       email: 'instruktur@skilvora.com',
       name: 'Kak Rangga (Instruktur)',
-      password: defaultPassword,
+      password: instructorPassword,
       role: Role.INSTRUCTOR,
+      emailVerifiedAt: new Date(),
     },
   });
 
   const student = await prisma.user.upsert({
     where: { email: 'siswa@skilvora.com' },
-    update: {},
+    update: { password: studentPassword, emailVerifiedAt: new Date() },
     create: {
       email: 'siswa@skilvora.com',
       name: 'Budi Cahyono',
-      password: defaultPassword,
+      password: studentPassword,
       role: Role.STUDENT,
+      emailVerifiedAt: new Date(),
     },
   });
 

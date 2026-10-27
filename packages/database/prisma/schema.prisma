@@ -54,6 +54,24 @@ enum CertificateStatus {
   REVOKED
 }
 
+enum AuthTokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  REFRESH_SESSION
+  OAUTH_CODE
+}
+
+enum CertificateAuditAction {
+  ISSUED
+  REVOKED
+}
+
+enum PaymentAuditAction {
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
 // ================= MODELS =================
 
 model User {
@@ -63,6 +81,7 @@ model User {
   name           String?
   profilePicture String?
   role           Role     @default(STUDENT)
+  emailVerifiedAt DateTime?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -72,6 +91,24 @@ model User {
   quizAttempts      QuizAttempt[]
   certificates      Certificate[]
   confirmedPayments Payment[]     @relation("AdminConfirmedPayments")
+  paymentAudits     PaymentAudit[]  @relation("PaymentAuditActor")
+  authTokens        AuthToken[]
+  revokedCertificates Certificate[] @relation("CertificateRevokedBy")
+  certificateAudits CertificateAudit[] @relation("CertificateAuditActor")
+}
+
+model AuthToken {
+  id        String        @id @default(cuid())
+  tokenHash String        @unique
+  type      AuthTokenType
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime      @default(now())
+
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([expiresAt])
 }
 
 model Category {
@@ -193,6 +230,8 @@ model QuizAttempt {
 
   quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([quizId, userId, attemptNumber])
 }
 
 model Enrollment {
@@ -216,6 +255,7 @@ model ModuleProgress {
   enrollmentId String
   moduleId     String
   status       ProgressStatus @default(NOT_STARTED)
+  lastAccessedAt DateTime?
   completedAt  DateTime?
 
   enrollment   Enrollment     @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
@@ -233,11 +273,28 @@ model Payment {
   proofUrl      String?
   confirmedById String?
   confirmedAt   DateTime?
+  reviewedAt    DateTime?
+  reviewReason  String?       @db.Text
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
   enrollment    Enrollment    @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   confirmedBy   User?         @relation("AdminConfirmedPayments", fields: [confirmedById], references: [id], onDelete: SetNull)
+  audits        PaymentAudit[]
+}
+
+model PaymentAudit {
+  id        String            @id @default(cuid())
+  paymentId String
+  actorId   String?
+  action    PaymentAuditAction
+  reason    String?           @db.Text
+  createdAt DateTime          @default(now())
+
+  payment   Payment           @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  actor     User?             @relation("PaymentAuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([paymentId, createdAt])
 }
 
 model Certificate {
@@ -248,7 +305,27 @@ model Certificate {
   status           CertificateStatus @default(VALID)
   issuedAt         DateTime          @default(now())
   revokedReason    String?           @db.Text
+  revokedAt        DateTime?
+  revokedById      String?
 
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   class            Class             @relation(fields: [classId], references: [id], onDelete: Cascade)
+  revokedBy        User?             @relation("CertificateRevokedBy", fields: [revokedById], references: [id], onDelete: SetNull)
+  audits           CertificateAudit[]
+
+  @@unique([userId, classId])
+}
+
+model CertificateAudit {
+  id            String                 @id @default(cuid())
+  certificateId String
+  actorId       String?
+  action        CertificateAuditAction
+  reason        String?                @db.Text
+  createdAt     DateTime               @default(now())
+
+  certificate   Certificate            @relation(fields: [certificateId], references: [id], onDelete: Cascade)
+  actor         User?                  @relation("CertificateAuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([certificateId, createdAt])
 }

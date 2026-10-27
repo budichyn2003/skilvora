@@ -3,7 +3,7 @@ import { GlassCard } from '@/components/ui/glass-card';
 
 // Fungsi khusus fetch untuk Server Component dengan Auth
 async function getUsers() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value;
 
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {

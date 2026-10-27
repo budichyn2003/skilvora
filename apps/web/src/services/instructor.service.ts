@@ -25,6 +25,12 @@ export const InstructorService = {
     const response = await api.post(`/quizzes/instructor/class/${classId}`, data);
     return response.data;
   },
+  getQuiz: async (classId: string, type: 'FINAL' | 'MODULE', moduleId?: string) => {
+    const response = await api.get(`/quizzes/instructor/class/${classId}`, {
+      params: { type, ...(moduleId ? { moduleId } : {}) },
+    });
+    return response.data;
+  },
 };
 
 export const EnrollmentService = {

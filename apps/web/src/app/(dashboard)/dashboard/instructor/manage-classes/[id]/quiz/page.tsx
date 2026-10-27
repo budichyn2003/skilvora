@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GlassCard } from "@/components/ui/glass-card";
 import { InstructorService } from "@/services/instructor.service";
-import { api } from "@/lib/axios";
+
+type ModuleOption = { id: string; title: string };
 
 export default function ManageQuizPage() {
   const params = useParams();
@@ -17,33 +18,59 @@ export default function ManageQuizPage() {
   const classId = params.id as string;
   
   const [passingGrade, setPassingGrade] = useState(70);
+  const [maxAttempts, setMaxAttempts] = useState(3);
+  const [quizType, setQuizType] = useState<'FINAL' | 'MODULE'>('FINAL');
+  const [modules, setModules] = useState<ModuleOption[]>([]);
+  const [moduleId, setModuleId] = useState('');
   const [questions, setQuestions] = useState([
     { question: "", options: [{ id: "A", text: "" }, { id: "B", text: "" }], correctAnswer: "A" }
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
 
-  // Fungsi untuk mengambil data kuis yang sudah ada (READ)
   useEffect(() => {
-    api.get(`/quizzes/class/${classId}`)
-      .then((res) => {
-        if (res.data) {
-          setPassingGrade(res.data.passingGrade);
-          if (res.data.questions && res.data.questions.length > 0) {
-            // Memasukkan soal yang sudah ada ke dalam form
-            setQuestions(res.data.questions.map((q: any) => ({
-              question: q.question,
-              options: typeof q.options === 'string' ? JSON.parse(q.options) : q.options,
-              correctAnswer: q.correctAnswer
-            })));
-          }
+    InstructorService.getClassById(classId)
+      .then((course) => {
+        const classModules = course.modules || [];
+        setModules(classModules);
+        setModuleId((current) => current || classModules[0]?.id || '');
+      })
+      .catch((error: any) => toast.error(error.response?.data?.message || 'Gagal memuat modul kelas'));
+  }, [classId]);
+
+  useEffect(() => {
+    if (quizType === 'MODULE' && !moduleId) return;
+    setIsFetching(true);
+    InstructorService.getQuiz(classId, quizType, quizType === 'MODULE' ? moduleId : undefined)
+      .then((quiz) => {
+        if (!quiz) {
+          setQuestions([{ question: '', options: [{ id: 'A', text: '' }, { id: 'B', text: '' }], correctAnswer: 'A' }]);
+          setPassingGrade(70);
+          setMaxAttempts(3);
+          return;
+        }
+        setPassingGrade(quiz.passingGrade);
+        setMaxAttempts(quiz.maxAttempts);
+        if (quiz.questions?.length) {
+          setQuestions(quiz.questions.map((question: any) => ({
+            question: question.question,
+            options: typeof question.options === 'string' ? JSON.parse(question.options) : question.options,
+            correctAnswer: question.correctAnswer,
+          })));
+        } else {
+          setQuestions([{ question: '', options: [{ id: 'A', text: '' }, { id: 'B', text: '' }], correctAnswer: 'A' }]);
         }
       })
-      .catch(() => {
-        // Jika 404 (kuis belum ada), biarkan form kosong
+      .catch((error: any) => {
+        if (error.response?.status !== 404) {
+          toast.error(error.response?.data?.message || 'Gagal memuat kuis');
+        }
+        setQuestions([{ question: '', options: [{ id: 'A', text: '' }, { id: 'B', text: '' }], correctAnswer: 'A' }]);
+        setPassingGrade(70);
+        setMaxAttempts(3);
       })
       .finally(() => setIsFetching(false));
-  }, [classId]);
+  }, [classId, quizType, moduleId]);
 
   const handleAddQuestion = () => {
     setQuestions([...questions, { question: "", options: [{ id: "A", text: "" }, { id: "B", text: "" }], correctAnswer: "A" }]);
@@ -61,7 +88,13 @@ export default function ManageQuizPage() {
     setIsSubmitting(true);
     try {
       // Backend akan melakukan UPSERT (Update jika ada, Insert jika baru)
-      await InstructorService.createQuiz(classId, { passingGrade, questions });
+      await InstructorService.createQuiz(classId, {
+        type: quizType,
+        ...(quizType === 'MODULE' ? { moduleId } : {}),
+        passingGrade,
+        maxAttempts,
+        questions,
+      });
       toast.success("Kuis berhasil disimpan!");
       router.push(`/dashboard/instructor/manage-classes/${classId}`);
     } catch (error) {
@@ -71,7 +104,7 @@ export default function ManageQuizPage() {
     }
   };
 
-  if (isFetching) {
+  if (isFetching || !modules.length) {
     return <div className="animate-pulse bg-[#EAEDFB] h-96 rounded-xl max-w-4xl"></div>;
   }
 
@@ -88,9 +121,36 @@ export default function ManageQuizPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        <GlassCard className="grid gap-4 p-6 md:grid-cols-2">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-[#00033D]">Jenis kuis</label>
+            <select
+              value={quizType}
+              onChange={(event) => setQuizType(event.target.value as 'FINAL' | 'MODULE')}
+              className="h-10 w-full rounded-md border border-[#00033D]/10 bg-white px-3 text-sm"
+            >
+              <option value="FINAL">Kuis akhir kelas</option>
+              <option value="MODULE">Kuis modul</option>
+            </select>
+          </div>
+          {quizType === 'MODULE' && (
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-[#00033D]">Modul</label>
+              <select
+                value={moduleId}
+                onChange={(event) => setModuleId(event.target.value)}
+                className="h-10 w-full rounded-md border border-[#00033D]/10 bg-white px-3 text-sm"
+              >
+                {modules.map((module) => <option key={module.id} value={module.id}>{module.title}</option>)}
+              </select>
+            </div>
+          )}
+        </GlassCard>
         <GlassCard className="p-6">
           <label className="text-sm font-semibold text-[#00033D] block mb-2">Batas Kelulusan (Passing Grade %)</label>
           <Input type="number" min="1" max="100" required value={passingGrade} onChange={(e) => setPassingGrade(Number(e.target.value))} className="max-w-[200px]" />
+          <label className="mt-4 block text-sm font-semibold text-[#00033D]">Maksimal percobaan</label>
+          <Input type="number" min="1" required value={maxAttempts} onChange={(e) => setMaxAttempts(Number(e.target.value))} className="mt-2 max-w-[200px]" />
         </GlassCard>
 
         {questions.map((q, qIndex) => (

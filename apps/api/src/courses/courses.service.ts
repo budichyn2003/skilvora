@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -34,9 +35,9 @@ export class CoursesService {
     });
   }
 
-  async findInstructorClassById(id: string, instructorId: string) {
+  async findInstructorClassById(id: string, instructorId: string, role: Role) {
     const course = await this.prisma.class.findUnique({
-      where: { id, instructorId },
+      where: role === Role.ADMIN ? { id } : { id, instructorId },
       include: {
         modules: { orderBy: { order: 'asc' } },
         quizzes: { include: { questions: true } }
@@ -47,9 +48,9 @@ export class CoursesService {
     return course;
   }
 
-  async findInstructorClasses(instructorId: string) {
+  async findInstructorClasses(instructorId: string, role: Role) {
     return this.prisma.class.findMany({
-      where: { instructorId },
+      where: role === Role.ADMIN ? {} : { instructorId },
       include: {
         _count: { select: { modules: true, enrollments: true } }
       },
@@ -71,7 +72,7 @@ export class CoursesService {
 
   async findBySlug(slug: string) {
     const course = await this.prisma.class.findUnique({
-      where: { slug },
+      where: { slug, status: 'PUBLISHED' },
       include: {
         category: true,
         instructor: { select: { name: true, profilePicture: true } },
@@ -91,9 +92,9 @@ export class CoursesService {
     return course;
   }
 
-  async publishClass(id: string, instructorId: string) {
+  async publishClass(id: string, instructorId: string, role: Role) {
     const course = await this.prisma.class.findUnique({
-      where: { id, instructorId },
+      where: role === Role.ADMIN ? { id } : { id, instructorId },
       include: {
         _count: { select: { modules: true } }
       }

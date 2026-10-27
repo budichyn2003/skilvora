@@ -28,7 +28,12 @@ export default function LoginPage() {
       // Ambil token dan simpan ke cookie agar proxy.ts (middleware) mengizinkan akses
       const token = response.data.access_token || response.data.token;
       if (token) {
-        Cookies.set('token', token, { expires: 7 }); 
+        const isSecure = window.location.protocol === 'https:';
+        Cookies.set('token', token, {
+          expires: 1 / 24,
+          sameSite: isSecure ? 'None' : 'Lax',
+          secure: isSecure,
+        });
         toast.success('Login berhasil!');
         router.push('/dashboard');
       } else {
@@ -78,9 +83,9 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-semibold text-[#00033D]">Password</label>
-                <button type="button" className="text-xs font-bold text-[#0033FF] hover:text-[#0033FF]/80 transition-colors">
+                <Link href="/auth/forgot-password" className="text-xs font-bold text-[#0033FF] hover:text-[#0033FF]/80 transition-colors">
                   Lupa Password?
-                </button>
+                </Link>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#00033D]/50" />

@@ -1,6 +1,11 @@
 import { Controller, Get, Param, Post, Patch, Body, UseGuards, Request } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { AuthGuard } from '@nestjs/passport';
+import { Role } from '@prisma/client';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+
+type AuthenticatedRequest = { user: { id: string; role: Role } };
 
 @Controller('courses')
 export class CoursesController {
@@ -15,28 +20,32 @@ export class CoursesController {
     return this.coursesService.findAllPublished();
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN, Role.INSTRUCTOR)
   @Get('instructor/my-classes')
-  async getInstructorClasses(@Request() req: any) {
-    return this.coursesService.findInstructorClasses(req.user.id);
+  async getInstructorClasses(@Request() req: AuthenticatedRequest) {
+    return this.coursesService.findInstructorClasses(req.user.id, req.user.role);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN, Role.INSTRUCTOR)
   @Post('instructor/classes')
-  async createClass(@Request() req: any, @Body() data: any) {
+  async createClass(@Request() req: AuthenticatedRequest, @Body() data: any) {
     return this.coursesService.create(req.user.id, data);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN, Role.INSTRUCTOR)
   @Get('instructor/classes/:id')
-  async getInstructorClassById(@Param('id') id: string, @Request() req: any) {
-    return this.coursesService.findInstructorClassById(id, req.user.id);
+  async getInstructorClassById(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    return this.coursesService.findInstructorClassById(id, req.user.id, req.user.role);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN, Role.INSTRUCTOR)
   @Patch('instructor/classes/:id/publish')
-  async publishClass(@Param('id') id: string, @Request() req: any) {
-    return this.coursesService.publishClass(id, req.user.id);
+  async publishClass(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    return this.coursesService.publishClass(id, req.user.id, req.user.role);
   }
 
   // ==========================================

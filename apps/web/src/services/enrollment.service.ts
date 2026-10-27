@@ -22,8 +22,26 @@ export const EnrollmentService = {
     const response = await api.get(`/quizzes/class/${classId}`);
     return response.data;
   },
+  getModuleQuiz: async (moduleId: string) => {
+    const response = await api.get(`/quizzes/module/${moduleId}`);
+    return response.data;
+  },
   submitQuiz: async (quizId: string, answers: { questionId: string, answer: string }[]) => {
     const response = await api.post(`/quizzes/${quizId}/submit`, { answers });
+    return response.data;
+  },
+  downloadCertificate: async (certificateId: string) => {
+    const response = await api.get(`/enrollments/certificates/${certificateId}/pdf`, {
+      responseType: 'blob',
+    });
+    return response.data as Blob;
+  },
+  revokeCertificate: async (certificateId: string, reason: string) => {
+    const response = await api.post(`/enrollments/certificates/${certificateId}/revoke`, { reason });
+    return response.data;
+  },
+  getCertificatesForAdmin: async () => {
+    const response = await api.get('/enrollments/certificates');
     return response.data;
   },
   getMyCertificates: async () => {

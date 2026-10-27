@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 
 async function getUser(id: string) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value;
 
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
@@ -14,8 +14,9 @@ async function getUser(id: string) {
   return res.json();
 }
 
-export default async function EditUserPage({ params }: { params: { id: string } }) {
-  const user = await getUser(params.id);
+export default async function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const user = await getUser(id);
 
   if (!user) notFound();
 

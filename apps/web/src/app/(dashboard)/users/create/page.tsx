@@ -43,7 +43,7 @@ export default function CreateUserPage() {
             <h1 className="text-3xl font-bold text-zinc-900">Tambah User</h1>
             <p className="text-zinc-500">Standar Form Input Core Engine</p>
           </div>
-          <Button onClick={() => router.back()} variant="outline">Batal</Button>
+          <Button onClick={() => router.back()} variant="secondary">Batal</Button>
         </div>
 
         <div className="bg-white rounded-lg shadow border border-zinc-200 p-6">

@@ -11,15 +11,19 @@ export default function StudentDashboard() {
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [certificates, setCertificates] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     Promise.all([
-      api.get('/enrollments/my-classes').catch(() => ({ data: [] })),
-      api.get('/enrollments/certificates/my').catch(() => ({ data: [] }))
+      api.get('/enrollments/my'),
+      api.get('/enrollments/certificates/me'),
     ])
     .then(([enrollRes, certRes]) => {
       setEnrollments(enrollRes.data);
       setCertificates(certRes.data);
+    })
+    .catch((error) => {
+      setLoadError(error.response?.data?.message || 'Gagal memuat ringkasan belajar. Coba muat ulang halaman.');
     })
     .finally(() => setIsLoading(false));
   }, []);
@@ -86,7 +90,9 @@ export default function StudentDashboard() {
           </Link>
         </div>
 
-        {enrollments.length === 0 ? (
+        {loadError ? (
+          <GlassCard role="alert" className="p-8 text-center text-red-600">{loadError}</GlassCard>
+        ) : enrollments.length === 0 ? (
           <GlassCard className="p-12 text-center rounded-2xl bg-white/80">
             <p className="text-[#00033D]/60 mb-4 text-sm">Anda belum mengambil kelas apa pun.</p>
             <Button asChild className="bg-[#0033FF] text-white font-bold rounded-xl">
@@ -103,9 +109,21 @@ export default function StudentDashboard() {
                   </span>
                   <h3 className="font-bold text-lg text-[#00033D] mb-2">{enr.class?.title}</h3>
                   <p className="text-sm text-[#00033D]/60 line-clamp-2 mb-4">{enr.class?.description}</p>
+                  {enr.status === 'ACTIVE' && (
+                    <div className="mb-4">
+                      <div className="mb-1 flex justify-between text-xs text-[#00033D]/60">
+                        <span>Progress kelas</span><span>{enr.progressPercent ?? 0}%</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-[#0033FF]/10">
+                        <div className="h-full bg-[#0033FF]" style={{ width: `${enr.progressPercent ?? 0}%` }} />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <Button asChild className="w-full bg-[#0033FF] hover:bg-[#0029CC] text-white font-bold rounded-xl">
-                  <Link href={`/dashboard/student/classes/${enr.classId}`}>Lanjutkan Belajar</Link>
+                  <Link href={enr.status === 'ACTIVE' ? `/dashboard/student/learn/${enr.classId}` : '/dashboard/student/payments'}>
+                    {enr.status === 'ACTIVE' ? 'Lanjutkan Belajar' : 'Selesaikan Pembayaran'}
+                  </Link>
                 </Button>
               </GlassCard>
             ))}

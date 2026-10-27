@@ -1,40 +1,64 @@
-import { Controller, Post, Body, UnauthorizedException, Res, Get, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  BadRequestException,
+  Controller,
+  Get,
+  Headers,
+  Patch,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
-import type { Response } from 'express';
+import { Throttle } from '@nestjs/throttler';
+
+type AuthenticatedRequest = Request & {
+  user: { id: string; email: string; role: string };
+};
+
+function readCookie(
+  header: string | undefined,
+  cookieName: string,
+): string | undefined {
+  return header
+    ?.split(';')
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith(`${cookieName}=`))
+    ?.slice(cookieName.length + 1);
+}
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  async register(@Body() body: any) {
-    const { email, password, name } = body;
-
-    if (!email || !password) {
-      throw new UnauthorizedException('Email dan Password wajib diisi');
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  register(@Body() body: { email?: string; password?: string; name?: string }) {
+    if (!body.email || !body.password) {
+      throw new BadRequestException('Email dan password wajib diisi');
     }
-
-    return this.authService.register(email, password, name);
+    return this.authService.register(body.email, body.password, body.name);
   }
 
   @Post('login')
-  async login(@Body() body: any, @Res({ passthrough: true }) res: Response) {
-    const user = await this.authService.validateUser(body.email, body.password);
-    
-    if (!user) {
-      throw new UnauthorizedException('Email atau Password salah');
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  async login(
+    @Body() body: { email?: string; password?: string },
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    if (!body.email || !body.password) {
+      throw new BadRequestException('Email dan password wajib diisi');
     }
+    const user = await this.authService.validateUser(body.email, body.password);
+    if (!user) throw new UnauthorizedException('Email atau password salah');
 
     const tokens = await this.authService.login(user);
-
-    res.cookie('refresh_token', tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
+    this.setRefreshCookie(response, tokens.refreshToken);
+    this.setAccessCookie(response, tokens.access_token);
     return {
       message: 'Login berhasil',
       user: tokens.user,
@@ -42,39 +66,141 @@ export class AuthController {
     };
   }
 
-  // --- ENDPOINT BARU UNTUK MENGAMBIL PROFIL ---
-  @Get('me')
-  @UseGuards(AuthGuard('jwt'))
-  getProfile(@Req() req: any) {
-    // JWT Guard otomatis mengekstrak payload token dan menyisipkannya ke req.user
-    return req.user;
+  @Post('refresh')
+  async refresh(
+    @Headers('cookie') cookieHeader: string | undefined,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const tokens = await this.authService.refreshSession(
+      readCookie(cookieHeader, 'refresh_token'),
+    );
+    this.setRefreshCookie(response, tokens.refreshToken);
+    this.setAccessCookie(response, tokens.access_token);
+    return { access_token: tokens.access_token, user: tokens.user };
   }
 
-  // --- GOOGLE OAUTH ROUTES ---
-  
+  @Post('exchange')
+  async exchangeOAuthCode(
+    @Body('code') code: string,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    if (!code) throw new BadRequestException('Kode login wajib diisi');
+    const tokens = await this.authService.exchangeOAuthCode(code);
+    this.setRefreshCookie(response, tokens.refreshToken);
+    this.setAccessCookie(response, tokens.access_token);
+    return { access_token: tokens.access_token, user: tokens.user };
+  }
+
+  @Post('logout')
+  async logout(
+    @Headers('cookie') cookieHeader: string | undefined,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    await this.authService.logout(readCookie(cookieHeader, 'refresh_token'));
+    response.clearCookie('refresh_token', this.refreshCookieOptions());
+    response.clearCookie('token', this.accessCookieOptions());
+    return { message: 'Anda telah keluar' };
+  }
+
+  @Post('verify-email')
+  verifyEmail(@Body('token') token: string) {
+    return this.authService.verifyEmail(token);
+  }
+
+  @Post('resend-verification')
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
+  resendVerification(@Body('email') email: string) {
+    if (!email) throw new BadRequestException('Email wajib diisi');
+    return this.authService.resendVerification(email);
+  }
+
+  @Post('forgot-password')
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
+  requestPasswordReset(@Body('email') email: string) {
+    if (!email) throw new BadRequestException('Email wajib diisi');
+    return this.authService.requestPasswordReset(email);
+  }
+
+  @Post('reset-password')
+  resetPassword(@Body() body: { token?: string; password?: string }) {
+    if (!body.token || !body.password) {
+      throw new BadRequestException('Token dan password wajib diisi');
+    }
+    return this.authService.resetPassword(body.token, body.password);
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
+  getProfile(@Req() request: AuthenticatedRequest) {
+    return this.authService.getProfile(request.user.id);
+  }
+
+  @Patch('profile')
+  @UseGuards(AuthGuard('jwt'))
+  updateProfile(
+    @Req() request: AuthenticatedRequest,
+    @Body() body: { name?: string; profilePicture?: string | null },
+  ) {
+    if (typeof body.name !== 'string')
+      throw new BadRequestException('Nama wajib diisi');
+    return this.authService.updateProfile(
+      request.user.id,
+      body.name,
+      body.profilePicture,
+    );
+  }
+
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth(@Req() req: any) {}
+  googleAuth() {}
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req: any, @Res() res: Response) {
-    const tokens = await this.authService.login(req.user);
+  async googleAuthRedirect(
+    @Req() request: AuthenticatedRequest,
+    @Res() response: Response,
+  ) {
+    const code = await this.authService.createOAuthCode(request.user.id);
+    const webUrl = (process.env.WEB_APP_URL || 'http://localhost:3000').replace(
+      /\/+$/,
+      '',
+    );
+    response.redirect(
+      `${webUrl}/auth/callback?code=${encodeURIComponent(code)}`,
+    );
+  }
 
-    // DIPERBARUI: Nama cookie diubah dari 'access_token' menjadi 'token'
-    // agar sinkron dengan file proxy.ts di Next.js
-    res.cookie('token', tokens.access_token, {
-      httpOnly: false, 
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 1000, 
-    });
-
-    res.cookie('refresh_token', tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+  private setRefreshCookie(response: Response, token: string): void {
+    response.cookie('refresh_token', token, {
+      ...this.refreshCookieOptions(),
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+  }
 
-    res.redirect('http://localhost:3000/dashboard');
+  private setAccessCookie(response: Response, token: string): void {
+    response.cookie('token', token, {
+      ...this.accessCookieOptions(),
+      maxAge: 60 * 60 * 1000,
+    });
+  }
+
+  private refreshCookieOptions() {
+    const secure = process.env.NODE_ENV === 'production';
+    return {
+      httpOnly: true,
+      secure,
+      sameSite: secure ? ('none' as const) : ('lax' as const),
+      path: '/',
+    };
+  }
+
+  private accessCookieOptions() {
+    const secure = process.env.NODE_ENV === 'production';
+    return {
+      httpOnly: false,
+      secure,
+      sameSite: secure ? ('none' as const) : ('lax' as const),
+      path: '/',
+    };
   }
 }

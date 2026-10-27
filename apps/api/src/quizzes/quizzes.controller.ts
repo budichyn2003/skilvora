@@ -1,34 +1,84 @@
-import { Controller, Post, Body, Param, UseGuards, Request, Get } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { QuizType, Role } from '@prisma/client';
 import { AuthGuard } from '@nestjs/passport';
+import type { Request } from 'express';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import { QuizzesService } from './quizzes.service';
+
+type AuthenticatedRequest = Request & { user: { id: string; role: Role } };
 
 @Controller('quizzes')
 export class QuizzesController {
   constructor(private readonly quizzesService: QuizzesService) {}
 
-  @UseGuards(AuthGuard('jwt'))
   @Post(':quizId/submit')
-  async submitAttempt(
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.STUDENT)
+  submitAttempt(
     @Param('quizId') quizId: string,
-    @Request() req: any,
-    @Body('answers') answers: { questionId: string, answer: string }[]
+    @Req() request: AuthenticatedRequest,
+    @Body('answers') answers: { questionId: string; answer: string }[],
   ) {
-    return this.quizzesService.submitQuiz(req.user.id, quizId, answers);
+    return this.quizzesService.submitQuiz(request.user.id, quizId, answers);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Post('instructor/class/:classId')
-  async createClassQuiz(
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN, Role.INSTRUCTOR)
+  createClassQuiz(
     @Param('classId') classId: string,
-    @Request() req: any,
-    @Body() data: any
+    @Req() request: AuthenticatedRequest,
+    @Body() data: {
+      type?: QuizType;
+      moduleId?: string;
+      passingGrade?: number;
+      maxAttempts?: number;
+      questions?: { question: string; options: { id: string; text: string }[]; correctAnswer: string }[];
+    },
   ) {
-    return this.quizzesService.createQuiz(req.user.id, classId, data);
+    return this.quizzesService.createQuiz(request.user.id, request.user.role, classId, data);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @Get('instructor/class/:classId')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN, Role.INSTRUCTOR)
+  getInstructorQuiz(
+    @Param('classId') classId: string,
+    @Req() request: AuthenticatedRequest,
+    @Query('type') type: QuizType = QuizType.FINAL,
+    @Query('moduleId') moduleId?: string,
+  ) {
+    return this.quizzesService.getQuizForInstructor(
+      request.user.id,
+      request.user.role,
+      classId,
+      type,
+      moduleId,
+    );
+  }
+
+  @Get('module/:moduleId')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.STUDENT)
+  getModuleQuiz(
+    @Param('moduleId') moduleId: string,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.quizzesService.getModuleQuizForStudent(request.user.id, moduleId);
+  }
+
   @Get('class/:classId')
-  async getStudentQuiz(@Param('classId') classId: string) {
-    return this.quizzesService.getQuizForStudent(classId);
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.STUDENT)
+  getStudentQuiz(
+    @Param('classId') classId: string,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.quizzesService.getQuizForStudent(
+      request.user.id,
+      classId,
+      QuizType.FINAL,
+    );
   }
 }

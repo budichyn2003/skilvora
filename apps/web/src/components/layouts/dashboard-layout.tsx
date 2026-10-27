@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AuthService, UserProfile } from "@/services/auth.service";
 import Cookies from "js-cookie";
+import toast from "react-hot-toast";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -80,7 +81,17 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         
         <div className="p-4">
           <button 
-            onClick={() => { Cookies.remove('token'); router.push('/auth/login'); }}
+            onClick={async () => {
+              try {
+                await AuthService.logout();
+              } catch (error) {
+                toast.error('Sesi server tidak dapat diakhiri. Token lokal tetap dihapus.');
+              } finally {
+                Cookies.remove('token');
+                router.replace('/auth/login');
+                router.refresh();
+              }
+            }}
             className="w-full px-4 py-2 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-xl transition-colors text-left"
           >
             Keluar

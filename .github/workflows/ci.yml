@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_SITE_URL: https://skilvora.example
+      NEXT_PUBLIC_PAYMENTS_ENABLED: "false"
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/skilvora
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/skilvora
+      JWT_SECRET: ci-only-secret-not-for-deployment-00000000000000000000
+      JWT_REFRESH_SECRET: ci-only-refresh-secret-not-for-deployment-0000000000000000000
+      PAYMENTS_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @cahyodev/database db:generate
+      - run: pnpm --filter @cahyodev/database exec prisma validate
+      - run: pnpm --filter api exec jest --runInBand
+      - run: pnpm --filter api exec eslint "src/enrollments/enrollments.controller.ts" "src/enrollments/enrollments.module.ts" "src/enrollments/enrollments.service.ts" "src/enrollments/enrollments.service.spec.ts" "src/roadmaps/roadmaps.controller.ts" "src/roadmaps/roadmaps.service.ts" "src/roadmaps/roadmaps.service.spec.ts" "src/health.controller.ts" "src/main.ts" "src/app.module.ts" "src/auth/auth.controller.ts"
+      - run: pnpm --filter web exec eslint "src/app/(dashboard)/dashboard/admin/roadmap/page.tsx" "src/app/(dashboard)/dashboard/admin/verifications/page.tsx" "src/app/(dashboard)/dashboard/student/payments/page.tsx" "src/app/(public)/courses/course-catalog.tsx" "src/app/(public)/courses/page.tsx" "src/app/(public)/courses/[slug]/page.tsx" "src/app/roadmap/page.tsx" "src/app/roadmap/roadmap-list.tsx" "src/app/roadmap/[slug]/page.tsx" src/app/robots.ts src/app/sitemap.ts
+      - run: pnpm --filter api build
+      - run: pnpm --filter web build

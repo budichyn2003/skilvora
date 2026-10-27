@@ -113,7 +113,7 @@ export default function InstructorDashboard() {
                   </div>
                   <h3 className="font-bold text-lg text-[#00033D]">{cls.title}</h3>
                 </div>
-                <Button variant="outline" asChild className="w-full sm:w-auto border-[#0033FF]/30 text-[#0033FF] hover:bg-[#0033FF]/5 font-bold rounded-xl">
+                <Button variant="secondary" asChild className="w-full sm:w-auto border-[#0033FF]/30 text-[#0033FF] hover:bg-[#0033FF]/5 font-bold rounded-xl">
                   <Link href={`/dashboard/instructor/manage-classes/${cls.id}`}>Kelola Materi & Kuis</Link>
                 </Button>
               </GlassCard>

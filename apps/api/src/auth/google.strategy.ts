@@ -1,31 +1,37 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { AuthService } from './auth.service';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
-  constructor() {
+  constructor(config: ConfigService, private readonly authService: AuthService) {
     super({
-      // Gunakan fallback dummy jika .env belum diisi
-      clientID: process.env.GOOGLE_CLIENT_ID || 'dummy-client-id',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'dummy-client-secret',
-      callbackURL: 'http://localhost:3001/auth/google/callback',
+      clientID: config.get<string>('GOOGLE_CLIENT_ID') || 'oauth-not-configured',
+      clientSecret: config.get<string>('GOOGLE_CLIENT_SECRET') || 'oauth-not-configured',
+      callbackURL: `${(config.get<string>('API_PUBLIC_URL') || 'http://localhost:3001').replace(/\/+$/, '')}/auth/google/callback`,
       scope: ['email', 'profile'],
     });
   }
 
-  async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback): Promise<any> {
-    const { name, emails, photos } = profile;
-    const user = {
-      email: emails[0].value,
-      firstName: name?.givenName || '',
-      lastName: name?.familyName || '',
-      picture: photos[0].value,
-      accessToken,
+  async validate(
+    _accessToken: string,
+    _refreshToken: string,
+    profile: Parameters<VerifyCallback>[0],
+  ) {
+    const googleProfile = profile as {
+      emails?: Array<{ value: string; verified?: boolean }>;
+      displayName?: string;
+      photos?: Array<{ value: string }>;
     };
-    
-    // Di aplikasi nyata, di sini kamu akan memanggil AuthService 
-    // untuk mencari (find) atau membuat (create) user baru di database Prisma
-    done(null, user);
+    const email = googleProfile.emails?.[0]?.value;
+    if (!email) throw new UnauthorizedException('Google tidak memberikan alamat email');
+
+    return this.authService.validateGoogleUser(
+      email,
+      googleProfile.displayName || null,
+      googleProfile.photos?.[0]?.value || null,
+    );
   }
 }

@@ -63,12 +63,16 @@ export default function PublicVerifyPage() {
 
         {result && (
           <GlassCard className="p-8 bg-green-50/50 border-green-200 text-left">
-            <div className="flex items-center gap-3 text-green-700 font-bold text-lg mb-2">
-              <CheckCircle className="w-6 h-6" /> Sertifikat Sah & Terverifikasi
+            <div className={`flex items-center gap-3 font-bold text-lg mb-2 ${result.isValid ? 'text-green-700' : 'text-red-600'}`}>
+              {result.isValid ? <CheckCircle className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}
+              {result.isValid ? 'Sertifikat Sah & Terverifikasi' : 'Sertifikat Telah Dicabut'}
             </div>
             <p className="text-sm text-[#00033D]/80">Diterbitkan atas nama: <strong className="text-[#00033D]">{result.user?.name}</strong></p>
             <p className="text-sm text-[#00033D]/80">Untuk Kelas: <strong className="text-[#00033D]">{result.class?.title}</strong></p>
             <p className="text-xs text-[#00033D]/50 mt-4">Tanggal Terbit: {new Date(result.issuedAt).toLocaleDateString('id-ID')}</p>
+            {!result.isValid && result.revokedAt && (
+              <p className="text-xs text-red-600 mt-1">Tanggal pencabutan: {new Date(result.revokedAt).toLocaleDateString('id-ID')}</p>
+            )}
           </GlassCard>
         )}
 
