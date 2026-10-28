@@ -33,7 +33,7 @@ Dokumen ini memetakan kebutuhan dalam [PRD-LMS-Skilvora.md](./PRD-LMS-Skilvora.m
 1. Verifikasi matriks izin dan ownership seluruh endpoint sensitif dengan test API menyeluruh.
 2. Pertahankan `PAYMENTS_ENABLED=false`; pilih dan implementasikan upload bukti private/terkelola (R2 disebut sebagai opsi, belum diintegrasikan) sebelum menerima uang nyata.
 3. Lengkapi test browser/end-to-end untuk pembayaran, katalog/roadmap, auth, belajar/kuis, serta PDF/verifikasi/revoke.
-4. Deploy staging sungguhan setelah URL/secrets/provider diatur pemilik; jalankan migration dan smoke test.
+4. Deployment staging dikonfirmasi owner dan migration/API readiness lulus. Pada 2026-10-28, seed demo membuat satu course dan roadmap; API E2E untuk login, RBAC, enrollment gratis, progress, kuis akhir, sertifikat, verifikasi, dan PDF lulus. Namun Vercel `/courses`, `/roadmap`, dan `/sitemap.xml` masih HTTP 500, serta CORS API belum mengizinkan origin Vercel pada preflight. Betulkan `NEXT_PUBLIC_API_URL`, `WEB_APP_URL`, dan `ALLOWED_ORIGINS` pada environment deployment aktif, redeploy, lalu ulangi browser smoke test.
 5. Sebelum launch, buktikan backup/restore, monitoring, privasi/legal review, Lighthouse target, runbook, dan go/no-go owner.
 
 ## 2. Urutan fase pengembangan

@@ -208,11 +208,14 @@ Root directory:
 apps/web
 ```
 
-Environment variable production:
+Environment variables untuk deployment staging Skilvora:
 
 ```env
-NEXT_PUBLIC_API_URL="https://your-production-api.com"
+NEXT_PUBLIC_API_URL="https://skilvora-jvx9.onrender.com"
+NEXT_PUBLIC_SITE_URL="https://skilvora-omega.vercel.app"
 ```
+
+Set variabel tersebut pada environment Vercel yang dipakai deployment staging, lalu redeploy agar nilainya tersedia saat build Next.js. Jangan gunakan URL API staging untuk deployment production.
 
 ### Backend
 

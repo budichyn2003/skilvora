@@ -43,7 +43,12 @@ This is an operational checklist, not evidence that production has been deployed
 
 ## Current known blockers
 
-- No real Vercel/Render deployment, staging database migration, or production smoke test has been performed from this workspace.
+- Deployment smoke check on 2026-10-28 confirmed the public web app at `https://skilvora-omega.vercel.app` and API at `https://skilvora-jvx9.onrender.com` are reachable. API `/health` and `/health/ready` return healthy responses. After the owner confirmed this is isolated staging and approved demo data, the seed added one published course and roadmap; API E2E checks passed for seeded login, role denial, free enrollment, progress, final quiz, certificate verification, and PDF download.
+- The Vercel home/auth pages respond, but `/courses`, `/roadmap`, and `/sitemap.xml` still return HTTP 500 even after seed content is available. Verify `NEXT_PUBLIC_API_URL=https://skilvora-jvx9.onrender.com` in the active Vercel deployment environment and redeploy.
+- An API CORS preflight from `https://skilvora-omega.vercel.app` still does not return `Access-Control-Allow-Origin`. Verify `WEB_APP_URL` and `ALLOWED_ORIGINS` are set to the exact Vercel origin (without a trailing slash) in the active Render service environment, then redeploy and re-test browser requests.
+- Seeded demo account passwords were generated only for the smoke test and were not retained. Before using these accounts interactively, run the staging seed with owner-managed `SEED_ADMIN_PASSWORD`, `SEED_INSTRUCTOR_PASSWORD`, and `SEED_STUDENT_PASSWORD` values; never run it against production.
+- Email verification/reset and Google OAuth callbacks have not been exercised end-to-end. Confirm provider settings before relying on those flows.
+- The provider deployment has been described as isolated staging by the owner; retain that separation and do not promote the seeded test data to production.
 - The payment proof flow currently stores a learner-supplied HTTPS URL rather than uploading to managed storage. Choose and implement controlled storage before accepting real payments.
-- Transfer bank details, SMTP/OAuth credentials, domain, privacy/terms approval, monitoring, and backup/restore evidence must be supplied/configured by their owners.
+- Transfer bank details, SMTP/OAuth credentials, privacy/terms approval, monitoring, and backup/restore evidence must be supplied/configured by their owners.
 - CI validates code and tests but cannot validate provider credentials, production data migration, legal approval, or a production go/no-go decision.

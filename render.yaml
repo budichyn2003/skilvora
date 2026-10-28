@@ -21,11 +21,11 @@ services:
       - key: JWT_REFRESH_SECRET
         sync: false
       - key: WEB_APP_URL
-        sync: false
+        value: https://skilvora-omega.vercel.app
       - key: ALLOWED_ORIGINS
-        sync: false
+        value: https://skilvora-omega.vercel.app
       - key: API_PUBLIC_URL
-        sync: false
+        value: https://skilvora-jvx9.onrender.com
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
