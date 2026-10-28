@@ -1,34 +1,36 @@
-# Base image
-FROM node:18-alpine AS builder
+FROM node:20.19-alpine AS builder
 
 WORKDIR /app
 
-# Copy pnpm workspace config
+RUN apk add --no-cache openssl
+RUN corepack enable
+
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/api/package.json ./apps/api/
+COPY packages/database/package.json ./packages/database/
 
-# Install pnpm
-RUN npm install -g pnpm
-
-# Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Copy source code
 COPY apps/api ./apps/api
 COPY packages ./packages
 
-# Generate Prisma Client & Build NestJS
-WORKDIR /app/apps/api
-RUN pnpm prisma generate
-RUN pnpm build
+RUN pnpm --filter @cahyodev/database db:generate
+RUN pnpm --filter api build
 
-# Production image
-FROM node:18-alpine
+FROM node:20.19-alpine AS runner
 
 WORKDIR /app
-COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/apps/api/node_modules ./node_modules
-COPY --from=builder /app/apps/api/package.json ./
 
+RUN apk add --no-cache openssl
+ENV NODE_ENV=production
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/packages/database ./packages/database
+COPY --from=builder /app/packages/database/node_modules ./packages/database/node_modules
+
+WORKDIR /app/apps/api
 EXPOSE 3001
-CMD ["node", "dist/main"]
+CMD ["node", "dist/main.js"]

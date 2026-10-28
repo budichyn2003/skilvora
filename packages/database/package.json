@@ -1,7 +1,8 @@
 {
   "name": "@cahyodev/database",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "index.js",
+  "types": "index.ts",
   "scripts": {
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
