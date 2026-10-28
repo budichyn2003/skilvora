@@ -5,8 +5,17 @@ export const PaymentService = {
     const response = await api.get('/enrollments/payments/me');
     return response.data;
   },
-  uploadProof: async (paymentId: string, proofUrl: string) => {
-    const response = await api.patch(`/enrollments/payments/${paymentId}/proof`, { proofUrl });
+  uploadProof: async (paymentId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.patch(
+      `/enrollments/payments/${paymentId}/proof`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      },
+    );
     return response.data;
   },
   getForAdmin: async () => {

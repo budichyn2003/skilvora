@@ -30,10 +30,10 @@ Dokumen ini memetakan kebutuhan dalam [PRD-LMS-Skilvora.md](./PRD-LMS-Skilvora.m
 
 ### Blocker yang harus ditutup sebelum MVP dianggap selesai
 
-1. Verifikasi matriks izin dan ownership seluruh endpoint sensitif dengan test API menyeluruh.
+1. Verifikasi matriks izin dan ownership seluruh endpoint sensitif dengan test API menyeluruh. Test unit kini mencakup role guard, ownership kelas/modul/kuis/enrollment dan bukti pembayaran; perluas lagi ke seluruh route sensitif dan uji terautentikasi.
 2. Pertahankan `PAYMENTS_ENABLED=false`; pilih dan implementasikan upload bukti private/terkelola (R2 disebut sebagai opsi, belum diintegrasikan) sebelum menerima uang nyata.
-3. Lengkapi test browser/end-to-end untuk pembayaran, katalog/roadmap, auth, belajar/kuis, serta PDF/verifikasi/revoke.
-4. Deployment staging dikonfirmasi owner dan migration/API readiness lulus. Pada 2026-10-28, seed demo membuat satu course dan roadmap; API E2E untuk login, RBAC, enrollment gratis, progress, kuis akhir, sertifikat, verifikasi, dan PDF lulus. Namun Vercel `/courses`, `/roadmap`, dan `/sitemap.xml` masih HTTP 500, serta CORS API belum mengizinkan origin Vercel pada preflight. Betulkan `NEXT_PUBLIC_API_URL`, `WEB_APP_URL`, dan `ALLOWED_ORIGINS` pada environment deployment aktif, redeploy, lalu ulangi browser smoke test.
+3. Smoke test browser publik untuk katalog, pencarian, detail kelas, roadmap dan tautan kelas telah lolos; API unit suite berjumlah 35 tes dan build API/web lolos. Lengkapi test browser/end-to-end terautentikasi untuk enrollment, auth, belajar/kuis, PDF/verifikasi/revoke, serta pembayaran setelah storage aman diputuskan.
+4. Deployment staging dikonfirmasi owner dan migration/API readiness lulus. Pada 2026-10-28, seed demo membuat satu course dan roadmap; API E2E untuk login, RBAC, enrollment gratis, progress, kuis akhir, sertifikat, verifikasi, dan PDF lulus. Follow-up pada tanggal yang sama mengonfirmasi Vercel `/courses`, `/roadmap`, dan `/sitemap.xml` mengembalikan HTTP 200 serta CORS API mengizinkan origin Vercel pada preflight. URL/CORS deployment blocker sudah terselesaikan; browser smoke test untuk alur pengguna tetap perlu dilengkapi.
 5. Sebelum launch, buktikan backup/restore, monitoring, privasi/legal review, Lighthouse target, runbook, dan go/no-go owner.
 
 ## 2. Urutan fase pengembangan

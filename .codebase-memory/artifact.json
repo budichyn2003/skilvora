@@ -1,11 +1,11 @@
 {
     "schema_version": 2,
-    "commit": "5cd32adfa38b7b92fd47209567ee5a5da9ce82f3",
-    "indexed_at": "2026-10-28T12:34:15Z",
+    "commit": "291330ad33bf471ed6c678f3ae98be8dff58e175",
+    "indexed_at": "2026-10-28T15:16:49Z",
     "project": "D-Kumpulan-Projek-Full-Stack-Development-lms-skilvora",
-    "nodes": 1334,
-    "edges": 3017,
-    "original_size": 7340032,
-    "compressed_size": 1009531,
+    "nodes": 1363,
+    "edges": 3134,
+    "original_size": 7602176,
+    "compressed_size": 1046688,
     "compression_level": 3
 }

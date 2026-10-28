@@ -13,6 +13,7 @@ type StudentPayment = {
   id: string;
   status: "PENDING" | "SUCCESS" | "FAILED";
   proofUrl: string | null;
+  hasProof: boolean;
   reviewReason: string | null;
   method: string;
   amount: number | string;
@@ -29,7 +30,7 @@ export default function PaymentsPage() {
   const paymentsEnabled = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED === "true";
   const [payments, setPayments] = useState<StudentPayment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [proofInput, setProofInput] = useState<Record<string, string>>({});
+  const [proofFiles, setProofFiles] = useState<Record<string, File | null>>({});
 
   const fetchPayments = async () => {
     try {
@@ -49,15 +50,15 @@ export default function PaymentsPage() {
   }, []);
 
   const handleUpload = async (paymentId: string) => {
-    const url = proofInput[paymentId];
-    if (!url) return toast.error("Masukkan URL bukti transfer terlebih dahulu");
+    const file = proofFiles[paymentId];
+    if (!file) return toast.error("Pilih file bukti transfer terlebih dahulu");
 
     try {
-      await PaymentService.uploadProof(paymentId, url);
+      await PaymentService.uploadProof(paymentId, file);
       toast.success(
         "Bukti transfer berhasil dikirim! Menunggu verifikasi admin.",
       );
-      fetchPayments();
+      await fetchPayments();
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, "Gagal mengunggah bukti"));
     }
@@ -161,12 +162,12 @@ export default function PaymentsPage() {
                         </p>
                       )}
                       <Input
-                        placeholder="URL HTTPS bukti transfer"
-                        value={proofInput[item.id] || ""}
+                        type="file"
+                        accept="image/png,image/jpeg"
                         onChange={(e) =>
-                          setProofInput({
-                            ...proofInput,
-                            [item.id]: e.target.value,
+                          setProofFiles({
+                            ...proofFiles,
+                            [item.id]: e.target.files?.[0] ?? null,
                           })
                         }
                       />
@@ -178,7 +179,7 @@ export default function PaymentsPage() {
                       </Button>
                     </div>
                   )}
-                {item.status === "PENDING" && item.proofUrl && (
+                {item.status === "PENDING" && item.hasProof && (
                   <div className="flex items-center gap-2 text-yellow-600 font-medium text-sm">
                     <Clock className="w-5 h-5" /> Bukti sedang dicek admin.
                   </div>

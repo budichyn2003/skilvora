@@ -1,283 +1,167 @@
-# CayLabs - Core Engine 
+# Skilvora
 
-**CayLabs (Cahyo Lab)** adalah *personal engineering laboratory* milik **Budi Cahyono**, yang digunakan sebagai fondasi utama untuk membangun dan mengembangkan berbagai proyek software.
+Skilvora adalah platform belajar online untuk kelas coding dan teknologi informasi. Repository ini berisi aplikasi web, API, dan package database dalam satu monorepo pnpm/Turborepo.
 
-Core Engine ini dibuat untuk menghindari setup proyek berulang. Setiap proyek baru dapat dimulai dari fondasi yang sudah memiliki struktur, dependency, konfigurasi, authentication, database integration, dan development workflow yang terstandarisasi.
+## Teknologi
 
-> **Clone → Configure → Build**
+- **Monorepo:** pnpm workspace dan Turborepo
+- **Frontend:** Next.js App Router, React, Tailwind CSS
+- **Backend:** NestJS, Passport/JWT
+- **Database:** PostgreSQL dengan Prisma
+- **File bukti pembayaran:** Cloudflare R2 (fitur pembayaran tetap nonaktif sampai storage dikonfigurasi dan diuji)
 
----
-
-## Tech Stack
-
-### Architecture & Tooling
-
-- **Monorepo:** Turborepo
-- **Package Manager:** pnpm
-
-### Frontend — `apps/web`
-
-- **Framework:** Next.js 16 (App Router)
-- **Styling:** Tailwind CSS
-- **UI Components:** Shadcn UI (Custom Solid Enterprise Theme with CayLabs Tokens)
-- **State & HTTP:** React Hooks, Axios
-- **Feedback UI:** React Hot Toast
-
-### Backend — `apps/api`
-
-- **Framework:** NestJS
-- **ORM:** Prisma
-- **Authentication:** JWT + Passport
-- **Password Security:** bcryptjs
-- **Infrastructure:** Docker
-
-### Database
-
-- **Database:** PostgreSQL
-- **ORM:** Prisma
-- **Provider:** Compatible with PostgreSQL providers such as Neon
-
----
-
-## Struktur Direktori
+## Struktur repository
 
 ```text
-.
-├── apps
-│   ├── api                # Backend NestJS
-│   │   ├── prisma         # Skema database
-│   │   ├── src
-│   │   │   ├── auth       # Modul JWT & Middleware Guard
-│   │   │   ├── users      # Blueprint CRUD Modul (Standar)
-│   │   │   └── main.ts    # Entry point backend (Port 3001)
-│   │   └── Dockerfile     # Setup kontainer deployment
-│   │
-│   └── web                # Frontend Next.js
-│       ├── src
-│       │   ├── app        # App Router (Pages, Dashboard)
-│       │   ├── components # Komponen UI re-usable
-│       │   └── lib        # Konfigurasi eksternal (Axios)
-│       └── proxy.ts       # Middleware proteksi rute Next.js
-│
-├── packages               # Shared config (TS, ESLint, dll)
-├── pnpm-workspace.yaml    # Definisi workspace pnpm
-└── turbo.json             # Konfigurasi pipeline Turborepo
----
-
-## Core Philosophy
-
-CayLabs Core Engine menggunakan prinsip:
-
-```text
-Standardized Foundation
-        ↓
-Reusable Architecture
-        ↓
-Clone for New Project
-        ↓
-Configure Environment
-        ↓
-Build & Customize
+apps/
+  api/                 NestJS API (default port 3001)
+  web/                 Next.js web app (default port 3000)
+packages/
+  database/            Prisma schema, migrations, seed, dan shared Prisma Client
+docs/                  Dokumentasi arsitektur, deployment, testing, dan readiness
+render.yaml            Blueprint deployment API
+pnpm-workspace.yaml    Definisi workspace pnpm
+turbo.json             Pipeline Turborepo
 ```
 
-Tujuannya adalah menjaga konsistensi antar proyek sekaligus mengurangi waktu yang diperlukan untuk melakukan setup dari awal.
+Schema Prisma ada di `packages/database/prisma/schema.prisma`, bukan di `apps/api`.
 
-Setiap proyek tetap dapat dikembangkan dan disesuaikan sesuai kebutuhan tanpa harus mengubah fondasi utama secara keseluruhan.
+## Prasyarat
 
----
+- Node.js versi 20.9 atau lebih baru
+- pnpm 9
+- PostgreSQL untuk development lokal
 
-## Getting Started
+Periksa versi yang tersedia:
 
-### 1. Clone Repository
-
-Clone repository ini sebagai fondasi proyek baru.
-
-```bash
-git clone <repository-url>
-cd <project-name>
+```powershell
+node --version
+pnpm --version
 ```
 
-### 2. Install Dependencies
+## Menyiapkan development lokal
 
-Pastikan **Node.js** dan **pnpm** sudah tersedia.
+Jalankan perintah dari root repository.
 
-```bash
+### 1. Install dependency
+
+```powershell
 pnpm install
 ```
 
-### 3. Configure Environment
+### 2. Atur environment
 
-Buat environment variables sesuai kebutuhan project.
+Buat file environment dari template hanya jika file tersebut belum ada. Jika sudah ada, jangan ditimpa—pertahankan nilainya dan edit yang diperlukan:
 
-#### Backend — `apps/api/.env`
+```powershell
+if (-not (Test-Path packages/database/.env)) { Copy-Item .env.example packages/database/.env }
+if (-not (Test-Path apps/api/.env)) { Copy-Item .env.example apps/api/.env }
+if (-not (Test-Path apps/web/.env.local)) { Copy-Item apps/web/.env.example apps/web/.env.local }
+```
+
+Isi `DATABASE_URL` dan `DIRECT_URL` dengan koneksi PostgreSQL lokal pada kedua file backend/database. Jangan menyalin secret produksi atau staging ke environment lokal dan jangan commit file `.env`.
+
+Nilai minimum untuk `apps/web/.env.local`:
 
 ```env
-DATABASE_URL="your-database-url"
-JWT_SECRET="your-secure-secret"
+NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_PAYMENTS_ENABLED=false
 ```
 
-#### Frontend — `apps/web/.env.local`
+API menggunakan variabel di `.env.example`, termasuk `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `WEB_APP_URL`, dan konfigurasi SMTP. Untuk autentikasi email, isi konfigurasi SMTP dengan akun uji; jangan gunakan kredensial produksi untuk development.
+
+### 3. Generate Prisma Client dan siapkan database lokal
+
+Jalankan dari root repository:
+
+```powershell
+pnpm --filter @cahyodev/database db:generate
+pnpm --filter @cahyodev/database db:push
+```
+
+Package Prisma adalah `@cahyodev/database`. Perintah seperti `pnpm --filter ./apps/api prisma generate` tidak valid karena `apps/api` tidak memiliki script bernama `prisma`.
+
+`db:push` ditujukan hanya untuk database development lokal. Pastikan `DATABASE_URL` dan `DIRECT_URL` benar-benar menunjuk ke database lokal sebelum menjalankannya. Jangan gunakan `db:push` untuk database Neon/staging/production; deployment menggunakan migration yang sudah direview:
+
+```powershell
+pnpm --filter @cahyodev/database db:migrate:deploy
+```
+
+### 4. Seed data lokal (opsional)
+
+Seed membuat akun admin, instruktur, siswa, kelas contoh, modul, dan roadmap. Seed juga **mengatur ulang password** akun seed berdasarkan environment, jadi jalankan hanya pada database lokal atau database staging yang memang disetujui untuk data demo. Jangan jalankan pada production.
+
+Atur password demo minimal 8 karakter di `packages/database/.env` sebelum seed:
 
 ```env
-NEXT_PUBLIC_API_URL="http://localhost:3001"
+SEED_ADMIN_PASSWORD=
+SEED_INSTRUCTOR_PASSWORD=
+SEED_STUDENT_PASSWORD=
 ```
 
-> Jangan commit file `.env` atau `.env.local` ke repository public.
+Lalu jalankan:
 
-### 4. Setup Prisma
-
-```bash
-pnpm --filter ./apps/api prisma generate
-pnpm --filter ./apps/api prisma db push
+```powershell
+pnpm --filter @cahyodev/database db:seed
 ```
 
-### 5. Run Development
+Package Prisma sudah mendaftarkan seed command (`ts-node prisma/seed.ts`). Karena itu perintah Prisma CLI `pnpm --filter @cahyodev/database exec prisma db seed` juga dapat digunakan. `npx prisma db seed` tanpa konfigurasi seed akan gagal; jalankan lewat package database agar Prisma menemukan `package.json` dan `.env` yang benar.
 
-Jalankan seluruh workspace dari root:
+### 5. Jalankan aplikasi
 
-```bash
+```powershell
 pnpm dev
 ```
 
-Default development server:
+Perintah tersebut menjalankan web dan API melalui Turborepo.
 
-```text
-Frontend → http://localhost:3000
-Backend  → http://localhost:3001
+| Aplikasi | URL lokal |
+|---|---|
+| Web | <http://localhost:3000> |
+| API | <http://localhost:3001> |
+
+Untuk menjalankan satu aplikasi saja:
+
+```powershell
+pnpm --filter web dev
+pnpm --filter api dev
 ```
 
----
+## Perintah kerja umum
 
-## Authentication
+Jalankan dari root repository:
 
-Core Engine menyediakan authentication flow berbasis JWT.
-
-```text
-User
- ↓
-Next.js
- ↓
-NestJS API
- ↓
-Credential Validation
- ↓
-JWT
- ↓
-Cookie
- ↓
-Axios Authorization
- ↓
-Protected API
+```powershell
+pnpm --filter api test
+pnpm --filter api build
+pnpm --filter web build
+pnpm --filter web lint
+pnpm --filter @cahyodev/database db:studio
 ```
 
-Frontend menggunakan `proxy.ts` untuk membantu melindungi route yang membutuhkan authentication, sementara backend tetap melakukan validasi authorization pada endpoint yang dilindungi.
+`pnpm --filter api` dan `pnpm --filter web` merujuk ke nama package dalam `apps/api/package.json` dan `apps/web/package.json`.
 
----
+## Catatan pembayaran
 
-## Development Workflow
-
-Workflow utama CayLabs:
-
-```text
-Define Feature
-      ↓
-Update Database
-      ↓
-Update Backend
-      ↓
-Update Frontend
-      ↓
-Test
-      ↓
-Commit
-```
-
-Bagian database dapat dilewati apabila feature tidak membutuhkan perubahan schema.
-
----
+Pembayaran dinonaktifkan secara default (`PAYMENTS_ENABLED=false` di API dan `NEXT_PUBLIC_PAYMENTS_ENABLED=false` di web). Jangan aktifkan pembayaran uang nyata sebelum bucket R2 privat dan credential API dikonfigurasi, upload/akses admin diuji, aturan retensi bukti ditetapkan, dan pemilik produk menyetujui peluncurannya. Variabel R2 yang tersedia ada di `.env.example`; isi nilainya hanya di environment deployment yang aman.
 
 ## Deployment
 
-### Frontend
+Deployment staging Skilvora saat ini:
 
-Frontend Next.js dapat di-deploy menggunakan platform seperti **Vercel**.
+- **Web:** <https://skilvora-omega.vercel.app>
+- **API:** <https://skilvora-jvx9.onrender.com>
 
-Root directory:
+Untuk Vercel, gunakan root directory `apps/web` dan set `NEXT_PUBLIC_API_URL` ke URL API environment yang sesuai. Untuk Render, konfigurasi backend dan environment variable harus mengikuti [docs/STAGING-SETUP.md](./docs/STAGING-SETUP.md) dan [docs/deployment.md](./docs/deployment.md). Jangan gunakan URL staging atau data demo untuk production.
 
-```text
-apps/web
-```
+Sebelum menerima pengguna atau pembayaran nyata, ikuti checklist [docs/RELEASE-READINESS.md](./docs/RELEASE-READINESS.md). Status deployment dapat berubah; README ini bukan bukti bahwa production sudah siap.
 
-Environment variables untuk deployment staging Skilvora:
+## Dokumentasi
 
-```env
-NEXT_PUBLIC_API_URL="https://skilvora-jvx9.onrender.com"
-NEXT_PUBLIC_SITE_URL="https://skilvora-omega.vercel.app"
-```
-
-Set variabel tersebut pada environment Vercel yang dipakai deployment staging, lalu redeploy agar nilainya tersedia saat build Next.js. Jangan gunakan URL API staging untuk deployment production.
-
-### Backend
-
-Backend NestJS tersedia dengan Dockerfile:
-
-```text
-apps/api/Dockerfile
-```
-
-Contoh build:
-
-```bash
-docker build -t caylabs-api -f apps/api/Dockerfile .
-```
-
-Backend dapat dijalankan pada VPS atau container infrastructure lainnya.
-
----
-
-## Engineering Principles
-
-CayLabs Core Engine dibangun berdasarkan beberapa prinsip:
-
-* **Reusable Foundation**
-* **Monorepo Architecture**
-* **Separation of Concerns**
-* **Centralized Database Layer**
-* **API-based Communication**
-* **Secure Environment Configuration**
-* **Modular Backend**
-* **Reusable UI Components**
-* **Container-ready Backend**
-* **Production-ready Frontend**
-
----
-
-## Purpose
-
-CayLabs bukan sekadar boilerplate.
-
-Core Engine ini berfungsi sebagai **laboratorium engineering** untuk mengembangkan, menguji, menyempurnakan, dan menggunakan kembali fondasi teknologi dalam berbagai proyek.
-
-```text
-                    CayLabs
-                 Cahyo Laboratory
-                       │
-                       ▼
-                  Core Engine
-                       │
-          ┌────────────┼────────────┐
-          ▼            ▼            ▼
-       Frontend     Backend      Database
-       Next.js      NestJS       PostgreSQL
-          │            │            │
-          └────────────┼────────────┘
-                       ▼
-                 New Projects
-```
-
----
-
-## Credits
-
-Developed by **Budi Cahyono**
-**CayLabs — Cahyo Lab**
+- [Arsitektur](./docs/architecture.md)
+- [Setup staging](./docs/STAGING-SETUP.md)
+- [Testing runbook](./docs/testing-runbook.md)
+- [Deployment](./docs/deployment.md)
+- [Roadmap pengembangan](./docs/ROADMAP-PENGEMBANGAN-SKILVORA.md)
+- [Release readiness](./docs/RELEASE-READINESS.md)

@@ -16,13 +16,26 @@ import {
   ProgressStatus,
 } from '@prisma/client';
 import PDFDocument from 'pdfkit';
+import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  PaymentProofStorageService,
+  PaymentProofUpload,
+  validatePaymentProof,
+} from './payment-proof-storage.service';
+
+type PaymentWithStorageFields = {
+  id?: string;
+  proofKey?: string | null;
+  proofUrl?: string | null;
+};
 
 @Injectable()
 export class EnrollmentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly paymentProofStorage: PaymentProofStorageService,
   ) {}
 
   async enroll(userId: string, classId: string) {
@@ -66,6 +79,18 @@ export class EnrollmentsService {
 
       return enrollment;
     });
+  }
+
+  private presentPayment<T extends PaymentWithStorageFields>(payment: T) {
+    const { proofKey, proofUrl: _proofUrl, ...publicPayment } = payment;
+    return {
+      ...publicPayment,
+      hasProof: Boolean(proofKey || payment.proofUrl),
+      proofUrl:
+        proofKey && payment.id
+          ? `/enrollments/payments/admin/${payment.id}/proof`
+          : payment.proofUrl ?? null,
+    };
   }
 
   async getEnrollmentDetails(userId: string, classId: string) {
@@ -216,7 +241,7 @@ export class EnrollmentsService {
   }
 
   async getMyPayments(userId: string) {
-    return this.prisma.payment.findMany({
+    const payments = await this.prisma.payment.findMany({
       where: { enrollment: { userId } },
       include: {
         enrollment: {
@@ -227,10 +252,11 @@ export class EnrollmentsService {
       },
       orderBy: { createdAt: 'desc' },
     });
+    return payments.map((payment) => this.presentPayment(payment));
   }
 
   async getPaymentsForAdmin() {
-    return this.prisma.payment.findMany({
+    const payments = await this.prisma.payment.findMany({
       include: {
         enrollment: {
           include: {
@@ -246,35 +272,22 @@ export class EnrollmentsService {
       },
       orderBy: [{ status: 'asc' }, { updatedAt: 'desc' }],
     });
+    return payments.map((payment) => this.presentPayment(payment));
   }
 
   async uploadPaymentProof(
     userId: string,
     paymentId: string,
-    proofUrl: string,
+    file: PaymentProofUpload | undefined,
   ) {
     this.assertPaymentsEnabled();
-    let parsedUrl: URL;
-    try {
-      parsedUrl = new URL(proofUrl);
-    } catch {
-      throw new BadRequestException('URL bukti pembayaran tidak valid');
-    }
-    if (
-      parsedUrl.protocol !== 'https:' ||
-      parsedUrl.username ||
-      parsedUrl.password ||
-      parsedUrl.hostname === 'localhost'
-    ) {
-      throw new BadRequestException(
-        'URL bukti pembayaran harus menggunakan HTTPS',
-      );
-    }
+    const validatedFile = validatePaymentProof(file);
     const payment = await this.prisma.payment.findFirst({
       where: {
         id: paymentId,
         enrollment: { userId, status: EnrollmentStatus.PENDING },
       },
+      select: { id: true, status: true, proofKey: true, proofUrl: true },
     });
     if (!payment) throw new NotFoundException('Tagihan tidak ditemukan');
     if (
@@ -285,31 +298,68 @@ export class EnrollmentsService {
         'Tagihan ini tidak menerima bukti pembayaran baru',
       );
     }
-    if (payment.status === PaymentStatus.PENDING && payment.proofUrl) {
+    if (payment.status === PaymentStatus.PENDING && payment.proofKey) {
       throw new ConflictException('Bukti sedang menunggu verifikasi admin');
     }
 
-    return this.prisma.$transaction(async (transaction) => {
-      const updated = await transaction.payment.update({
-        where: { id: paymentId },
-        data: {
-          proofUrl: parsedUrl.toString(),
-          status: PaymentStatus.PENDING,
-          confirmedById: null,
-          confirmedAt: null,
-          reviewedAt: null,
-          reviewReason: null,
-        },
+    const proofKey = `payment-proofs/${paymentId}/${randomUUID()}.${validatedFile.extension}`;
+    await this.paymentProofStorage.upload(
+      proofKey,
+      file!.buffer,
+      validatedFile.contentType,
+    );
+
+    try {
+      const updated = await this.prisma.$transaction(async (transaction) => {
+        const result = await transaction.payment.update({
+          where: { id: paymentId },
+          data: {
+            proofKey,
+            proofUrl: null,
+            status: PaymentStatus.PENDING,
+            confirmedById: null,
+            confirmedAt: null,
+            reviewedAt: null,
+            reviewReason: null,
+          },
+        });
+        await transaction.paymentAudit.create({
+          data: {
+            paymentId,
+            actorId: userId,
+            action: PaymentAuditAction.SUBMITTED,
+          },
+        });
+        return result;
       });
-      await transaction.paymentAudit.create({
-        data: {
-          paymentId,
-          actorId: userId,
-          action: PaymentAuditAction.SUBMITTED,
-        },
-      });
-      return updated;
+      return this.presentPayment(updated);
+    } catch (error) {
+      try {
+        await this.paymentProofStorage.delete(proofKey);
+      } catch (cleanupError) {
+        throw new AggregateError(
+          [error, cleanupError],
+          'Payment proof upload failed and its temporary object could not be removed',
+        );
+      }
+      throw error;
+    }
+  }
+
+  async getPaymentProof(paymentId: string) {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: paymentId },
+      select: { proofKey: true, proofUrl: true },
     });
+    if (!payment?.proofKey && !payment?.proofUrl) {
+      throw new NotFoundException('Bukti pembayaran tidak ditemukan');
+    }
+    if (payment.proofKey) {
+      return this.paymentProofStorage.download(payment.proofKey);
+    }
+    throw new BadRequestException(
+      'Bukti yang tersimpan masih menggunakan URL lama. Silakan upload ulang ke storage privat.',
+    );
   }
 
   async reviewPayment(
@@ -331,7 +381,7 @@ export class EnrollmentsService {
       : PaymentAuditAction.REJECTED;
 
     try {
-      return await this.prisma.$transaction(
+      const reviewedPayment = await this.prisma.$transaction(
         async (transaction) => {
           const payment = await transaction.payment.findUnique({
             where: { id: paymentId },
@@ -340,7 +390,7 @@ export class EnrollmentsService {
           if (!payment) throw new NotFoundException('Tagihan tidak ditemukan');
           if (
             payment.status !== PaymentStatus.PENDING ||
-            !payment.proofUrl ||
+            !payment.proofKey ||
             payment.enrollment.status !== EnrollmentStatus.PENDING
           ) {
             throw new ConflictException(
@@ -353,7 +403,7 @@ export class EnrollmentsService {
             where: {
               id: paymentId,
               status: PaymentStatus.PENDING,
-              proofUrl: { not: null },
+              proofKey: { not: null },
             },
             data: {
               status,
@@ -406,6 +456,7 @@ export class EnrollmentsService {
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       );
+      return this.presentPayment(reviewedPayment);
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&

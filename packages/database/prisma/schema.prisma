@@ -270,6 +270,7 @@ model Payment {
   amount        Decimal       @db.Decimal(10, 2)
   method        String        // e.g., "MANUAL_TRANSFER", "QRIS"
   status        PaymentStatus @default(PENDING)
+  proofKey      String?
   proofUrl      String?
   confirmedById String?
   confirmedAt   DateTime?

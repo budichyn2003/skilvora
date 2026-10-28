@@ -1,6 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ForbiddenException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { EnrollmentStatus, ProgressStatus, QuizType } from '@prisma/client';
+import {
+  EnrollmentStatus,
+  ProgressStatus,
+  QuizType,
+  Role,
+} from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { QuizzesService } from './quizzes.service';
 
@@ -15,18 +21,19 @@ describe('QuizzesService', () => {
   };
   const prisma = {
     $transaction: jest.fn(),
+    enrollment: { findUnique: jest.fn() },
+    quiz: { findFirst: jest.fn() },
+    class: { findUnique: jest.fn() },
   };
 
   beforeEach(async () => {
     jest.clearAllMocks();
     prisma.$transaction.mockImplementation(
-      (callback: (tx: typeof transaction) => Promise<unknown>) => callback(transaction),
+      (callback: (tx: typeof transaction) => Promise<unknown>) =>
+        callback(transaction),
     );
     const moduleRef = await Test.createTestingModule({
-      providers: [
-        QuizzesService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [QuizzesService, { provide: PrismaService, useValue: prisma }],
     }).compile();
     service = moduleRef.get(QuizzesService);
   });
@@ -43,11 +50,15 @@ describe('QuizzesService', () => {
     transaction.enrollment.findUnique.mockResolvedValue({
       status: EnrollmentStatus.ACTIVE,
       class: { modules: [{ id: 'module-1' }] },
-      progresses: [{ moduleId: 'module-1', status: ProgressStatus.IN_PROGRESS }],
+      progresses: [
+        { moduleId: 'module-1', status: ProgressStatus.IN_PROGRESS },
+      ],
     });
 
     await expect(
-      service.submitQuiz('user-1', 'quiz-1', [{ questionId: 'question-1', answer: 'a' }]),
+      service.submitQuiz('user-1', 'quiz-1', [
+        { questionId: 'question-1', answer: 'a' },
+      ]),
     ).rejects.toBeInstanceOf(ForbiddenException);
     expect(transaction.quizAttempt.create).not.toHaveBeenCalled();
   });
@@ -68,12 +79,17 @@ describe('QuizzesService', () => {
       progresses: [{ moduleId: 'module-1', status: ProgressStatus.COMPLETED }],
     });
     transaction.quizAttempt.count.mockResolvedValue(0);
-    transaction.quizAttempt.create.mockResolvedValue({ isPassed: true, score: 100 });
+    transaction.quizAttempt.create.mockResolvedValue({
+      isPassed: true,
+      score: 100,
+    });
     transaction.certificate.findUnique.mockResolvedValue(null);
     transaction.certificate.create.mockResolvedValue(certificate);
 
     await expect(
-      service.submitQuiz('user-1', 'quiz-1', [{ questionId: 'question-1', answer: 'a' }]),
+      service.submitQuiz('user-1', 'quiz-1', [
+        { questionId: 'question-1', answer: 'a' },
+      ]),
     ).resolves.toEqual({
       attempt: { isPassed: true, score: 100 },
       certificate,
@@ -87,5 +103,59 @@ describe('QuizzesService', () => {
         }),
       }),
     );
+  });
+
+  it('requires an active enrollment to access a quiz', async () => {
+    prisma.enrollment.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.getQuizForStudent('student-1', 'class-1', QuizType.FINAL),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    expect(prisma.quiz.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('does not select correct answers when returning a student quiz', async () => {
+    prisma.enrollment.findUnique.mockResolvedValue({
+      status: EnrollmentStatus.ACTIVE,
+      class: { modules: [] },
+      progresses: [],
+    });
+    prisma.quiz.findFirst.mockResolvedValue({
+      id: 'quiz-1',
+      type: QuizType.MODULE,
+      moduleId: 'module-1',
+      questions: [{ id: 'question-1', question: 'Question?', options: [] }],
+    });
+
+    await service.getQuizForStudent(
+      'student-1',
+      'class-1',
+      QuizType.MODULE,
+      'module-1',
+    );
+
+    expect(prisma.quiz.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({
+          questions: {
+            select: { id: true, question: true, options: true },
+          },
+        }),
+      }),
+    );
+  });
+
+  it("denies instructors access to another instructor's quiz", async () => {
+    prisma.class.findUnique.mockResolvedValue({ instructorId: 'instructor-1' });
+
+    await expect(
+      service.getQuizForInstructor(
+        'instructor-2',
+        Role.INSTRUCTOR,
+        'class-1',
+        QuizType.FINAL,
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    expect(prisma.quiz.findFirst).not.toHaveBeenCalled();
   });
 });

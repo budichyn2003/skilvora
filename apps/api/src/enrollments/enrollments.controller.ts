@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -7,14 +8,20 @@ import {
   Post,
   Req,
   Res,
+  UploadedFile,
+  UseInterceptors,
   UseGuards,
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request, Response } from 'express';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { EnrollmentsService } from './enrollments.service';
+import type { PaymentProofUpload } from './payment-proof-storage.service';
+
+const ALLOWED_PROOF_MIME_TYPES = new Set(['image/jpeg', 'image/png']);
 
 type AuthenticatedRequest = Request & { user: { id: string; role: Role } };
 
@@ -93,6 +100,21 @@ export class EnrollmentsController {
     return this.enrollmentsService.getPaymentsForAdmin();
   }
 
+  @Get('payments/admin/:id/proof')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN)
+  async getPaymentProof(
+    @Param('id') id: string,
+    @Res() response: Response,
+  ) {
+    const proof = await this.enrollmentsService.getPaymentProof(id);
+    response.setHeader('Content-Type', proof.contentType);
+    response.setHeader('Content-Disposition', 'inline; filename="payment-proof"');
+    response.setHeader('Cache-Control', 'private, no-store');
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.send(proof.buffer);
+  }
+
   @Patch('payments/admin/:id/review')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(Role.ADMIN)
@@ -111,15 +133,30 @@ export class EnrollmentsController {
 
   @Patch('payments/:id/proof')
   @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+      fileFilter: (_request, file, callback) => {
+        if (!ALLOWED_PROOF_MIME_TYPES.has(file.mimetype)) {
+          callback(
+            new BadRequestException('Bukti harus berupa gambar PNG atau JPEG'),
+            false,
+          );
+          return;
+        }
+        callback(null, true);
+      },
+    }),
+  )
   uploadProof(
     @Param('id') id: string,
-    @Body('proofUrl') proofUrl: string,
+    @UploadedFile() file: PaymentProofUpload | undefined,
     @Req() request: AuthenticatedRequest,
   ) {
     return this.enrollmentsService.uploadPaymentProof(
       request.user.id,
       id,
-      proofUrl,
+      file,
     );
   }
 

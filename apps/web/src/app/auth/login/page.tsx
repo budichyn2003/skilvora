@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { isAxiosError } from 'axios';
 import toast from 'react-hot-toast';
 import { Mail, Lock } from 'lucide-react';
 import { Input } from "@/components/ui/input";
@@ -39,8 +40,11 @@ export default function LoginPage() {
       } else {
         toast.error('Gagal mendapatkan akses token.');
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Email atau password salah');
+    } catch (error: unknown) {
+      const message = isAxiosError<{ message?: string }>(error)
+        ? error.response?.data?.message
+        : undefined;
+      toast.error(message || 'Email atau password salah');
     } finally {
       setIsLoading(false);
     }
@@ -66,10 +70,11 @@ export default function LoginPage() {
         <GlassCard className="p-8">
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-[#00033D]">Alamat Email</label>
+              <label htmlFor="login-email" className="text-sm font-semibold text-[#00033D]">Alamat Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#00033D]/50" />
                 <Input 
+                  id="login-email"
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -82,7 +87,7 @@ export default function LoginPage() {
             
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-semibold text-[#00033D]">Password</label>
+                <label htmlFor="login-password" className="text-sm font-semibold text-[#00033D]">Password</label>
                 <Link href="/auth/forgot-password" className="text-xs font-bold text-[#0033FF] hover:text-[#0033FF]/80 transition-colors">
                   Lupa Password?
                 </Link>
@@ -90,6 +95,7 @@ export default function LoginPage() {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#00033D]/50" />
                 <Input 
+                  id="login-password"
                   type="password" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

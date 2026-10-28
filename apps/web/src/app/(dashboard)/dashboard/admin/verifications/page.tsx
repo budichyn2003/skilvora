@@ -12,6 +12,7 @@ type AdminPayment = {
   id: string;
   status: "PENDING" | "SUCCESS" | "FAILED";
   proofUrl: string | null;
+  hasProof: boolean;
   amount: number | string;
   enrollment: {
     user: { name: string | null; email: string };
@@ -99,7 +100,7 @@ export default function AdminVerificationsPage() {
             {loadError}
           </p>
         ) : payments.filter(
-            (payment) => payment.status === "PENDING" && payment.proofUrl,
+            (payment) => payment.status === "PENDING" && payment.hasProof,
           ).length === 0 ? (
           <p className="p-8 text-center text-[#00033D]/60">
             Belum ada bukti transfer yang menunggu verifikasi.
@@ -108,7 +109,7 @@ export default function AdminVerificationsPage() {
           <div className="divide-y divide-[#00033D]/10">
             {payments
               .filter(
-                (payment) => payment.status === "PENDING" && payment.proofUrl,
+                (payment) => payment.status === "PENDING" && payment.hasProof,
               )
               .map((payment) => (
                 <div key={payment.id} className="space-y-4 p-5">

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { isAxiosError } from 'axios';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,8 +39,11 @@ export default function RegisterPage() {
       });
       toast.success('Akun dibuat. Periksa email untuk memverifikasi akun sebelum masuk.');
       router.push('/auth/login');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Gagal mendaftar akun');
+    } catch (error: unknown) {
+      const message = isAxiosError<{ message?: string }>(error)
+        ? error.response?.data?.message
+        : undefined;
+      toast.error(message || 'Gagal mendaftar akun');
     } finally {
       setIsLoading(false);
     }
@@ -58,8 +62,9 @@ export default function RegisterPage() {
         <GlassCard className="p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-sm font-bold text-[#00033D] block mb-1">Nama Lengkap</label>
+              <label htmlFor="register-name" className="text-sm font-bold text-[#00033D] block mb-1">Nama Lengkap</label>
               <Input 
+                id="register-name"
                 name="name" 
                 placeholder="Budi Cahyono" 
                 required 
@@ -68,8 +73,9 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-bold text-[#00033D] block mb-1">Email</label>
+              <label htmlFor="register-email" className="text-sm font-bold text-[#00033D] block mb-1">Email</label>
               <Input 
+                id="register-email"
                 name="email" 
                 type="email" 
                 placeholder="nama@email.com" 
@@ -79,8 +85,9 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-bold text-[#00033D] block mb-1">Kata Sandi</label>
+              <label htmlFor="register-password" className="text-sm font-bold text-[#00033D] block mb-1">Kata Sandi</label>
               <Input 
+                id="register-password"
                 name="password" 
                 type="password" 
                 placeholder="••••••••" 
@@ -90,8 +97,9 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-bold text-[#00033D] block mb-1">Konfirmasi Kata Sandi</label>
+              <label htmlFor="register-confirm-password" className="text-sm font-bold text-[#00033D] block mb-1">Konfirmasi Kata Sandi</label>
               <Input 
+                id="register-confirm-password"
                 name="confirmPassword" 
                 type="password" 
                 placeholder="••••••••" 

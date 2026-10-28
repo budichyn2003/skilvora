@@ -3,6 +3,7 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -96,6 +97,25 @@ describe('EnrollmentsService', () => {
         'IN_PROGRESS',
       ),
     ).rejects.toBeInstanceOf(ForbiddenException);
+    expect(prisma.moduleProgress.upsert).not.toHaveBeenCalled();
+  });
+
+  it('scopes progress updates to the authenticated student enrollment', async () => {
+    prisma.enrollment.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.updateProgress(
+        'student-2',
+        'enrollment-1',
+        'module-1',
+        'IN_PROGRESS',
+      ),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.enrollment.findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'enrollment-1', userId: 'student-2' },
+      }),
+    );
     expect(prisma.moduleProgress.upsert).not.toHaveBeenCalled();
   });
 
@@ -299,5 +319,26 @@ describe('EnrollmentsService', () => {
       ),
     ).rejects.toBeInstanceOf(ServiceUnavailableException);
     expect(prisma.payment.findFirst).not.toHaveBeenCalled();
+  });
+
+  it("only accepts payment proof for the authenticated student's pending enrollment", async () => {
+    prisma.payment.findFirst.mockResolvedValue(null);
+
+    await expect(
+      service.uploadPaymentProof(
+        'student-2',
+        'payment-1',
+        'https://files.example/proof.png',
+      ),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.payment.findFirst).toHaveBeenCalledWith({
+      where: {
+        id: 'payment-1',
+        enrollment: {
+          userId: 'student-2',
+          status: EnrollmentStatus.PENDING,
+        },
+      },
+    });
   });
 });

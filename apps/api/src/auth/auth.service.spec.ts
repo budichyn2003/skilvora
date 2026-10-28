@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 import { ForbiddenException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { Role, User } from '@prisma/client';
+import { AuthTokenType, Role, User } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -25,8 +26,13 @@ describe('AuthService', () => {
   } as User;
 
   const prisma = {
-    user: { findUnique: jest.fn() },
-    authToken: { findFirst: jest.fn(), delete: jest.fn(), create: jest.fn() },
+    user: { findUnique: jest.fn(), update: jest.fn() },
+    authToken: {
+      findFirst: jest.fn(),
+      delete: jest.fn(),
+      deleteMany: jest.fn(),
+      create: jest.fn(),
+    },
     $transaction: jest.fn().mockResolvedValue([]),
   };
   const jwt = { sign: jest.fn().mockReturnValue('access-token') };
@@ -54,7 +60,9 @@ describe('AuthService', () => {
       password: await bcrypt.hash(password, 4),
     });
 
-    await expect(service.validateUser(' STUDENT@example.com ', password)).resolves.toEqual({
+    await expect(
+      service.validateUser(' STUDENT@example.com ', password),
+    ).resolves.toEqual({
       id: user.id,
       email: user.email,
       name: user.name,
@@ -68,9 +76,9 @@ describe('AuthService', () => {
   });
 
   it('blocks login until email verification is complete', async () => {
-    await expect(service.login(service['toSafeUser'](user))).rejects.toBeInstanceOf(
-      ForbiddenException,
-    );
+    await expect(
+      service.login(service['toSafeUser'](user)),
+    ).rejects.toBeInstanceOf(ForbiddenException);
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
@@ -85,9 +93,37 @@ describe('AuthService', () => {
 
     expect(result.refreshToken).not.toBe('raw-refresh-token');
     expect(jwt.sign).toHaveBeenCalled();
-    expect(prisma.authToken.delete).toHaveBeenCalledWith({ where: { id: 'refresh-1' } });
+    expect(prisma.authToken.delete).toHaveBeenCalledWith({
+      where: { id: 'refresh-1' },
+    });
     const storedHash = prisma.authToken.create.mock.calls[0][0].data.tokenHash;
     expect(storedHash).not.toBe(result.refreshToken);
     expect(storedHash).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it('verifies an email with a valid one-time token', async () => {
+    prisma.authToken.findFirst.mockResolvedValue({
+      userId: user.id,
+      user: { ...user, emailVerifiedAt: null },
+    });
+
+    await service.verifyEmail('verification-token');
+
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: user.id },
+      data: { emailVerifiedAt: expect.any(Date) },
+    });
+    expect(prisma.authToken.deleteMany).toHaveBeenCalledWith({
+      where: { userId: user.id, type: AuthTokenType.EMAIL_VERIFICATION },
+    });
+  });
+
+  it('rejects invalid verification tokens without modifying the user', async () => {
+    prisma.authToken.findFirst.mockResolvedValue(null);
+
+    await expect(service.verifyEmail('invalid-token')).rejects.toThrow(
+      'Tautan tidak valid atau sudah kedaluwarsa',
+    );
+    expect(prisma.user.update).not.toHaveBeenCalled();
   });
 });
