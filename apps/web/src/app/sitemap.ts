@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
   const siteUrl = (
-    process.env.NEXT_PUBLIC_SITE_URL || "https://skilvora.com"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://skilvora-omega.vercel.app/"
   ).replace(/\/+$/, "");
   const [coursesResponse, roadmapsResponse] = await Promise.all([
     fetch(`${apiUrl}/courses`, { cache: "no-store" }),

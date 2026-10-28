@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Skilvora - Platform Belajar Coding & IT',
     description: 'Tingkatkan keahlian programming Anda dan raih sertifikat industri.',
-    url: 'https://skilvora.com',
+    url: 'https://skilvora-omega.vercel.app/',
     siteName: 'Skilvora',
     locale: 'id_ID',
     type: 'website',

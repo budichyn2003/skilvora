@@ -84,7 +84,7 @@ export default async function CourseDetailPage({
 
   const isFree = Number(course.price) === 0;
   const siteUrl = (
-    process.env.NEXT_PUBLIC_SITE_URL || "https://skilvora.com"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://skilvora-omega.vercel.app/"
   ).replace(/\/+$/, "");
   const structuredData = {
     "@context": "https://schema.org",
