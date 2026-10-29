@@ -1,190 +1,182 @@
-# 🌌 UI Design System — "Haiti Night" (ui.md)
+# ⬛ UI Design System — "Black & Turbo" (ui.md)
 
 > Single Source of Truth untuk seluruh UI milikku sendiri.
-> Dark-first, berbasis palet **Quantus 2025**: Electric Violet, Turbo, Haiti, Blue Chalk.
-> Struktur dokumen mengikuti ui.md StackPlus, tetapi **gaya visual sengaja dibuat berbeda** (lihat bagian 1).
+> **Hitam netral + satu aksen kuning Turbo.** Tidak ada ungu, tidak ada gradient, tidak ada glow.
+> Gaya: editorial, tegas, tipografi besar, garis tipis. Sengaja menjauh dari tampilan "template AI".
 
 ---
 
 ## 0. Aturan untuk AI Agent (BACA DULU)
 
 1. Baca dokumen ini sebelum membuat atau mengubah UI apa pun.
-2. **Jangan membuat warna, font, radius, shadow, atau animasi baru.** Pakai token di bawah.
-3. Background halaman **selalu Haiti** (`--bg`). Tidak ada halaman berlatar terang.
-4. Warna dipakai lewat token (`bg-bg`, `bg-surface`, `text-chalk`, `text-violet`, `bg-turbo`, dst.), bukan hex acak.
-5. Reuse komponen yang sudah ada sebelum membuat yang baru.
-6. Setiap halaman: hierarchy jelas, **satu CTA Turbo per viewport**, mobile-first, tanpa horizontal overflow.
-7. Ragu? Cari pola paling mirip di dokumen ini. Jangan menciptakan gaya baru.
+2. **Dilarang keras: ungu/violet/indigo dalam bentuk apa pun**, gradient, glow, blur dekoratif, glassmorphism, shadow berwarna.
+3. Background halaman **selalu hitam netral** (`--bg`). Tidak ada halaman berlatar terang.
+4. **Jangan membuat warna, font, radius, atau animasi baru.** Pakai token di bawah.
+5. Hanya **satu warna aksen: Turbo**. Sisanya hitam, abu netral, dan putih tulang.
+6. Baca juga bagian 1.2 (**Anti-Slop**) sebelum menyusun layout. Layout "hero kiri teks, kanan card, lalu grid 3 card dengan ikon" dilarang.
+7. Reuse komponen yang ada sebelum membuat yang baru.
+8. Mobile-first, tanpa horizontal overflow, **satu CTA Turbo per viewport**.
+9. Ragu? Cari pola paling mirip di dokumen ini. Jangan menciptakan gaya baru.
 
 ---
 
 ## 1. Visual Identity
 
-Karakter: **gelap, berani, elektrik, modern, tegas tapi tetap ramah.**
+Karakter: **gelap, tegas, percaya diri, editorial, bersih.** Seperti majalah desain atau studio kreatif, bukan dashboard SaaS.
 
 Rumus visual:
 
 ```text
-Haiti (ungu-hitam pekat) sebagai latar
-+ Surface bertingkat (makin terang = makin "naik")
-+ Electric Violet = struktur & interaksi
-+ Turbo (kuning) = sorotan & aksi utama, dipakai hemat
-+ Blue Chalk = teks utama
-+ Card tinggi dengan sudut besar
-+ Elevasi lewat border + glow, bukan drop shadow
+Hitam netral sebagai latar
++ Garis tipis (hairline) sebagai struktur, bukan card berbayang
++ Tipografi raksasa sebagai elemen visual utama
++ Label mono kecil bernomor (01, 02, 03)
++ Satu aksen: Turbo (kuning), dipakai berani tapi terkontrol
++ Foto / mockup nyata, bukan ilustrasi abstrak
++ Motion halus dan sedikit
 ```
 
-Pembeda dari StackPlus:
+### 1.1 Prinsip
 
-| | StackPlus | Milikku |
-|---|---|---|
-| Tema | Terang hangat | **Gelap Haiti** |
-| Aksen | 1 biru | **Violet (struktur) + Turbo (sorotan)** |
-| Heading | Dua warna hitam + biru | **Chalk + 1 kata dengan marker Turbo** |
-| Tombol | Pill | **Rounded 16px (kotak lembut)** |
-| Card | Radius 16–24px, flat | **Radius 28px, tinggi (portrait), glow saat hover** |
-| Elevasi | Shadow lembut | **Border + glow violet** |
+- **Tipografi adalah desainnya.** Heading besar dan rapat lebih penting daripada dekorasi.
+- **Struktur lewat garis.** Pakai divider tipis dan grid, bukan tumpukan card.
+- **Kontras tajam.** Hitam pekat, putih tulang, kuning terang. Tidak ada warna tengah yang "ragu".
+- **Turbo itu sorotan**, bukan wallpaper. Dipakai di: CTA, satu kata heading, satu blok penuh per halaman, angka kunci.
+- **Whitespace lega**, tapi tegas: sebagian section sengaja sangat luas.
 
-Prinsip:
+### 1.2 Anti-Slop (hal yang bikin UI terlihat "buatan AI", DILARANG)
 
-- **Gelap tapi tidak hitam murni.** Selalu pakai Haiti dan turunannya, jangan `#000`.
-- **Dua aksen, peran jelas.** Violet untuk "ini bisa diklik / sedang aktif". Turbo untuk "lakukan ini sekarang".
-- **Turbo itu langka.** Kalau semua kuning, tidak ada yang menonjol.
-- **Whitespace lega.** Layout jangan padat.
-
-Prioritas keputusan:
-
-```text
-Usability > Readability > Hierarchy > Consistency > Aesthetic
-```
+| Dilarang | Gantinya |
+|---|---|
+| Warna ungu/violet/indigo, gradient, glow, blur blob | Hitam netral + Turbo |
+| Glassmorphism dan card transparan berbayang | Panel solid dengan border 1px |
+| Grid 3 card sama besar dengan kotak ikon di atas | Daftar baris bernomor, atau bento dengan ukuran berbeda |
+| Ikon dalam kotak rounded berwarna | Nomor mono (`01`) atau tanpa ikon |
+| Semua elemen rata tengah | Rata kiri, grid asimetris |
+| Semua card `rounded-3xl` | Radius kecil (4–12px), tegas |
+| Emoji sebagai ikon, ilustrasi abstrak "orb" | Foto nyata, screenshot produk, tipografi |
+| Badge pill dengan titik berkedip di hero | Label mono kecil bergaris |
+| Teks deskripsi tipis kelabu kecil | Body minimal 16px, kontras cukup |
+| Copywriting generik ("Solusi terbaik", "Revolusioner") | Kalimat konkret dengan angka atau hasil |
+| Hero kecil dengan whitespace sia-sia | Heading raksasa yang mengisi lebar layar |
 
 ---
 
 ## 2. Color
 
-### 2.1 Palet inti (dari Quantus 2025)
+### 2.1 Token
 
-| Nama | Hex | RGB | Peran |
-|---|---|---|---|
-| **Haiti** | `#18102B` | 24 16 43 | Background halaman, teks di atas Turbo |
-| **Electric Violet** | `#834DFB` | 131 77 251 | Aksen struktur, state aktif, fokus, card sorotan |
-| **Turbo** | `#F0E100` | 240 225 0 | CTA utama, kata sorotan, angka kunci |
-| **Blue Chalk** | `#F5F3FF` | 245 243 255 | Teks utama di atas gelap |
-
-### 2.2 Token turunan (diturunkan dari Haiti dan Violet)
-
-| Token | Nilai | Fungsi |
+| Token | Hex | Fungsi |
 |---|---|---|
-| `bg` | `#18102B` | Background halaman |
-| `surface` | `#1F1638` | Card, panel, sidebar |
-| `surface-2` | `#271C45` | Input, baris hover, area tonal |
-| `surface-3` | `#31245A` | Card terangkat, dropdown, modal |
-| `line` | `#382B5E` | Border default |
-| `line-strong` | `#4A3B78` | Border hover / divider tegas |
-| `chalk` | `#F5F3FF` | Teks utama, heading |
-| `muted` | `#B8B0D4` | Paragraf, deskripsi |
-| `subtle` | `#8A80AB` | Meta, placeholder, caption |
-| `violet` | `#834DFB` | Tombol sekunder, ikon aktif, ring fokus |
-| `violet-hover` | `#9566FF` | Hover violet |
-| `violet-press` | `#6B3AE0` | Pressed violet |
-| `violet-text` | `#B79CFF` | **Violet untuk teks kecil / link** (violet murni kurang kontras di teks kecil) |
-| `violet-soft` | `rgb(131 77 251 / 0.16)` | Latar ikon, badge, item aktif |
-| `turbo` | `#F0E100` | CTA utama |
+| `bg` | `#0A0A0A` | Background halaman |
+| `surface` | `#111111` | Panel, sidebar, card |
+| `surface-2` | `#181818` | Input, baris hover, area tonal |
+| `surface-3` | `#202020` | Dropdown, modal, elemen terangkat |
+| `line` | `#262626` | Border / divider default |
+| `line-strong` | `#3A3A3A` | Border hover, divider tegas |
+| `fg` | `#F2F1EC` | Teks utama, heading (putih tulang hangat) |
+| `muted` | `#A3A29C` | Paragraf, deskripsi |
+| `subtle` | `#8A8983` | Meta, placeholder, label |
+| `turbo` | `#F0E100` | Aksen tunggal: CTA, sorotan, blok penuh |
 | `turbo-hover` | `#FFF04D` | Hover Turbo |
 | `turbo-press` | `#D6C800` | Pressed Turbo |
+| `ink` | `#0A0A0A` | Teks di atas Turbo (sama dengan `bg`) |
 
-### 2.3 Semantik
+Semua abu **netral** (tanpa tint warna). Putih tulang `fg` sedikit hangat agar tidak steril.
+
+### 2.2 Semantik
 
 ```text
 Success: #4ADE80
-Warning: #FB923C   (jangan pakai Turbo, supaya tidak tertukar dengan CTA)
-Error:   #FF6B7A
-Info:    violet-text
+Warning: #FB923C   (bukan kuning, supaya tidak tertukar dengan Turbo)
+Error:   #FF5C5C
+Info:    fg (pakai ikon + teks, bukan warna baru)
 ```
 
-Latar badge semantik: warna yang sama di opacity 0.14, teks warna penuh.
+Badge semantik: latar warna yang sama di opacity 0.12, teks warna penuh, plus ikon atau teks.
 
-### 2.4 Kombinasi kontras yang aman
+### 2.3 Kontras
 
 | Teks | Latar | Catatan |
 |---|---|---|
-| `chalk` | `bg` / `surface` | AAA, aman untuk semua ukuran |
+| `fg` | `bg` / `surface` | AAA |
 | `muted` | `bg` / `surface` | AA, aman untuk body |
-| `subtle` | `bg` | AA tipis; hanya untuk meta, bukan teks penting |
-| `bg` (Haiti) | `turbo` | AAA, wajib untuk tombol Turbo |
-| `chalk` | `violet` | AA, aman untuk teks ≥ 14px bold atau ≥ 18px |
-| `violet` murni | `bg` | **Hanya UI besar / ikon / border**, bukan teks kecil |
-| `violet-text` | `bg` | AA, untuk link dan teks aksen kecil |
+| `subtle` | `bg` | AA, hanya untuk meta/label |
+| `ink` | `turbo` | AAA, wajib untuk tombol dan blok Turbo |
+| `turbo` | `bg` | AAA, aman untuk teks besar maupun kecil |
 
-### 2.5 Aturan warna
+### 2.4 Aturan warna
 
-- **Turbo**: tombol utama, satu kata sorotan di heading, angka statistik kunci, indikator "baru". Maksimal **satu elemen Turbo dominan per viewport**.
-- **Violet**: state aktif, ikon, ring fokus, hover border, glow, card sorotan, tombol sekunder.
-- **Blue Chalk** hanya sebagai teks atau tombol terang. Jangan jadikan background section besar.
-- Jangan ada gradient warna-warni. Satu-satunya gradient: glow radial violet halus di latar (lihat 6.3).
-- Jangan teks Turbo untuk paragraf. Turbo untuk teks hanya di heading besar (kata sorotan).
-- Status tidak boleh hanya dibedakan lewat warna; sertakan ikon atau teks.
+- Turbo boleh dipakai sebagai: tombol utama, satu kata sorotan heading, **satu blok section penuh** per halaman, angka statistik kunci, indikator aktif (garis bawah, titik), dan fokus.
+- Di dalam blok Turbo penuh: semua teks `ink`, tombol berlatar `ink` teks `fg`.
+- Jangan Turbo untuk paragraf panjang atau border biasa.
+- Dilarang membuat atau meminjam warna lain untuk "variasi".
 
 ---
 
 ## 3. Typography
 
-**Font: Plus Jakarta Sans** (geometris, hangat, mirip nuansa kartu palet). Satu keluarga untuk semua. Muat via `next/font/google` (atau `@fontsource`) di root layout.
+| Peran | Font |
+|---|---|
+| Display + heading | **Bricolage Grotesque** |
+| Body + UI | **Geist** |
+| Label, nomor, meta | **Geist Mono** |
+
+Hanya tiga font ini. Muat lewat `next/font/google` (atau `geist` package).
 
 ### Skala
 
 | Peran | Ukuran | Weight | Catatan |
 |---|---|---|---|
-| Display / Hero H1 | `text-5xl lg:text-7xl` | 700 | `leading-[1.05] tracking-tight` |
-| Section heading | `text-3xl md:text-5xl` | 700 | `leading-[1.1] tracking-tight` |
-| Card title | `text-lg` – `text-2xl` | 600 | |
-| Body | `text-base leading-relaxed` | 400 | warna `muted` |
-| Body kecil | `text-sm leading-relaxed` | 400 | warna `muted` |
-| Eyebrow / label | `text-xs uppercase tracking-[0.14em]` | 600 | warna `violet-text` |
-| Button | `text-sm` | 600 | tidak uppercase |
-| Meta / caption | `text-xs` | 500 | warna `subtle` |
-| Angka besar (stat) | `text-5xl` – `text-6xl` | 700 | `tabular-nums` |
+| Hero H1 | `clamp(3rem, 9vw, 8.5rem)` | 700–800 | `leading-[0.95] tracking-[-0.04em]`, bisa uppercase |
+| Section heading | `clamp(2.25rem, 5.5vw, 4.5rem)` | 700 | `leading-[1] tracking-[-0.035em]` |
+| Card title | `text-xl` – `text-3xl` | 600 | `tracking-tight`, font display |
+| Body | `text-base md:text-lg leading-relaxed` | 400 | warna `muted` |
+| Body kecil | `text-sm leading-relaxed` | 400 | **tidak lebih kecil dari 14px** |
+| Label mono | `text-xs uppercase tracking-[0.12em]` | 500 | Geist Mono, warna `subtle` |
+| Angka besar | `clamp(3.5rem, 8vw, 7rem)` | 700 | `tabular-nums leading-none` |
+| Button | `text-sm` | 600 | Geist, tidak uppercase |
 
 ### Pola heading: "Marker Turbo" (WAJIB untuk heading section)
 
-Seluruh heading Blue Chalk. **Satu kata kunci** diberi sorotan Turbo (teks Turbo, atau teks Haiti di atas blok Turbo untuk hero).
+Seluruh heading `fg`. **Satu kata kunci** disorot. Dua varian, pilih salah satu per halaman agar konsisten:
 
 ```tsx
-<h2 className="text-3xl md:text-5xl font-bold text-chalk tracking-tight leading-[1.1]">
-  Bangun produk yang <span className="text-turbo">terasa hidup</span>
+{/* Varian A: marker blok (hero) */}
+<h1 className="font-display text-[clamp(3rem,9vw,8.5rem)] leading-[0.95] tracking-[-0.04em] text-fg">
+  Kami bikin brand yang <span className="bg-turbo text-ink px-3 -mx-1 rounded-md">susah dilupakan</span>
+</h1>
+
+{/* Varian B: teks Turbo (section) */}
+<h2 className="font-display text-[clamp(2.25rem,5.5vw,4.5rem)] leading-none tracking-[-0.035em] text-fg">
+  Proses yang <span className="text-turbo">jelas</span>
 </h2>
 ```
 
-Varian hero (marker blok):
-
-```tsx
-<span className="bg-turbo text-bg px-3 rounded-xl">hidup</span>
-```
-
-Aturan: maksimal 1 frasa (1–3 kata) per heading. Hero boleh memakai varian marker blok; section lain memakai teks Turbo.
+Aturan: maksimal 1 frasa (1–3 kata). Heading harus **mengisi lebar**; jangan dibuat kecil dan ditaruh di tengah ruang kosong.
 
 ---
 
 ## 4. Layout & Spacing
 
-### Container
+### Grid
 
-```tsx
-<section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-```
+- Container: `max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10`.
+- Grid 12 kolom di desktop. Layout **asimetris**: heading menempati 8–10 kolom, deskripsi 4–5 kolom di sisi lain.
+- Garis vertikal tipis (`border-line`) boleh membagi kolom di desktop.
 
-### Skala spasi
+### Section
 
-- Kelipatan 4px (skala Tailwind).
-- Jarak antar section: `py-16` mobile → `py-24` desktop → `py-32` untuk hero/CTA.
-- Heading → paragraf: `mb-5`; paragraf → CTA: `mb-8`.
-- Grid card: `gap-5` mobile, `gap-6` desktop.
+- Dipisah **hairline** `border-t border-line`, bukan jarak kosong saja.
+- Padding: `py-20` mobile → `py-32` desktop.
+- Setiap section dibuka dengan header baris: `[ 02 / Layanan ]` kiri (mono, `subtle`), judul di bawahnya atau di kanan.
+- Ritme halaman: gelap → gelap → **blok Turbo penuh** → gelap → footer. Satu blok Turbo per halaman.
 
-### Struktur halaman
+### Spacing
 
-- Navbar sticky di atas dengan blur halus, konten diberi `pt-24`.
-- Hero: 2 kolom di `lg` (teks kiri, visual kanan), 1 kolom di mobile.
-- Konten utama max `max-w-7xl`; teks panjang max `max-w-2xl`.
+- Kelipatan 4px.
+- Heading → paragraf: `mt-6`; paragraf → CTA: `mt-10`.
+- Jarak antar baris daftar: tinggi baris generous (`py-6` – `py-8`).
 
 ---
 
@@ -194,207 +186,163 @@ Aturan: maksimal 1 frasa (1–3 kata) per heading. Hero boleh memakai varian mar
 
 | Elemen | Radius |
 |---|---|
-| Button | `rounded-2xl` (16px) |
-| Input | `rounded-2xl` (16px) |
-| Card | `rounded-[28px]` |
-| Card besar / blok CTA / modal | `rounded-[36px]` |
-| Badge, tag, avatar | `rounded-full` |
-| Ikon dalam kotak | `rounded-xl` (12px) |
-| Gambar dalam card | ikut radius card (`overflow-hidden`) |
+| Button, input | `rounded-lg` (8px) |
+| Card, panel, tabel | `rounded-xl` (12px) |
+| Modal, blok besar | `rounded-2xl` (16px) |
+| Label/tag | `rounded-md` (6px) |
+| Avatar | `rounded-full` |
+| Blok Turbo penuh | `rounded-none` (full-bleed) atau `rounded-2xl` bila di dalam container |
 
-Hanya badge, tag, dan avatar yang pill penuh. Tombol dan input **bukan** pill.
+Tidak ada pill. Tidak ada radius di atas 16px.
 
 ### Border
 
-- Default: `border border-line` (1px).
-- Hover: `border-line-strong`, atau `border-violet/60` untuk elemen interaktif utama.
-- Fokus: ring 2px violet (lihat 7.2).
-- Jangan border tebal (>1px) kecuali state fokus.
+- Default `border border-line` (1px). Hover: `border-line-strong`.
+- Fokus: `outline 2px turbo`, offset 2px.
+- Divider daftar: `border-t border-line`.
 
-### Elevasi (tanpa drop shadow hitam)
+### Elevasi
 
-Di latar gelap, shadow hitam tidak terlihat. Elevasi dibuat dari **tingkat surface + border + glow**:
+**Tanpa drop shadow dan tanpa glow.** Hierarki dibuat dari tingkat surface dan border:
 
 | Level | Tampilan |
 |---|---|
 | 0 | `bg` |
-| 1 | `surface` + `border-line` (card standar) |
-| 2 | `surface-2` / `surface-3` + `border-line-strong` (dropdown, modal) |
-| Hover | border violet + glow: `shadow-[0_0_0_1px_rgb(131_77_251/0.5),0_20px_48px_-16px_rgb(131_77_251/0.45)]` |
-| Card sorotan | `bg-violet` + glow violet lebar |
-
-Glow harus lembut dan lebar, tidak keras.
+| 1 | `surface` + `border-line` |
+| 2 | `surface-2` + `border-line-strong` |
+| Overlay | `surface-3` + `border-line-strong` + overlay `bg/80` |
 
 ---
 
-## 6. Latar & Dekorasi
+## 6. Komponen
 
-### 6.1 Halaman
+### 6.1 Button
 
-`bg-bg text-chalk` pada `<body>`.
-
-### 6.2 Surface
-
-Naik bertahap: `bg` → `surface` → `surface-2` → `surface-3`. Jangan melompat dua tingkat dalam satu komponen.
-
-### 6.3 Glow latar hero
-
-Satu glow radial violet halus di belakang visual hero, opacity rendah:
+**Primary (Turbo)**: satu per viewport.
 
 ```tsx
-<div className="absolute -z-10 size-[520px] rounded-full bg-violet/25 blur-[120px]" />
-```
-
-Maksimal 2 glow per halaman. Tidak ada gradient pelangi.
-
-### 6.4 Pola titik / grid (opsional)
-
-Boleh grid garis sangat tipis (`line` di opacity 40%) di hero atau CTA. Satu per halaman.
-
----
-
-## 7. Komponen
-
-### 7.1 Button
-
-**Primary (Turbo)**: aksi utama, **satu per viewport**.
-
-```tsx
-<button className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-2xl bg-turbo text-bg text-sm font-semibold hover:bg-turbo-hover active:bg-turbo-press active:scale-[0.98] transition-all duration-200">
-  Mulai Sekarang
+<button className="group inline-flex items-center gap-2 h-12 px-6 rounded-lg bg-turbo text-ink text-sm font-semibold hover:bg-turbo-hover active:bg-turbo-press active:scale-[0.98] transition duration-200">
+  Mulai proyek
+  <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
 </button>
 ```
 
-**Secondary (Violet)**: aksi penting kedua.
+**Secondary (outline)**:
 
 ```tsx
-<button className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-2xl bg-violet text-chalk text-sm font-semibold hover:bg-violet-hover active:bg-violet-press transition-all duration-200">
-  Lihat Detail
+<button className="inline-flex items-center gap-2 h-12 px-6 rounded-lg border border-line-strong text-fg text-sm font-semibold hover:bg-surface-2 hover:border-fg/50 transition duration-200">
+  Lihat karya
 </button>
 ```
 
-**Ghost (outline)**: aksi tersier.
+**Link aksi**: `text-fg text-sm font-semibold underline underline-offset-4 decoration-line-strong hover:decoration-turbo`.
+
+Aturan: tinggi ≥ 44px (default `h-12`). Disabled `opacity-40`. Loading: teks tetap ada + spinner kecil.
+
+### 6.2 Input & Form
 
 ```tsx
-<button className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-2xl border border-line-strong text-chalk text-sm font-semibold hover:bg-surface-2 hover:border-violet/60 transition-all duration-200">
-  Batal
-</button>
-```
-
-**Link aksi**: `text-violet-text text-sm font-semibold` + ikon panah kecil, hover `text-chalk`.
-
-Aturan: tinggi minimal 44px (`h-11` ke atas; default `h-12`). Ikon dan teks dipisah `gap-2`. Tombol disabled: `opacity-40 cursor-not-allowed`. Tombol loading: spinner kecil + teks tetap terlihat.
-
-### 7.2 Input & Form
-
-```tsx
-<label className="block text-sm font-semibold text-chalk mb-2" htmlFor="email">Email</label>
+<label htmlFor="email" className="block font-mono text-xs uppercase tracking-[0.12em] text-subtle mb-2">Email</label>
 <input
-  id="email"
-  type="email"
-  placeholder="nama@email.com"
-  className="w-full h-12 rounded-2xl bg-surface-2 border border-line px-4 text-sm text-chalk placeholder:text-subtle
-             hover:border-line-strong
-             focus:outline-none focus:border-violet focus:ring-2 focus:ring-violet/40 transition"
+  id="email" type="email" placeholder="nama@email.com"
+  className="w-full h-12 rounded-lg bg-surface border border-line px-4 text-base text-fg placeholder:text-subtle
+             hover:border-line-strong focus:outline-none focus:border-turbo focus:ring-2 focus:ring-turbo/30 transition"
 />
-<p className="mt-2 text-xs text-[#FF6B7A]">Pesan error di sini</p>
+<p className="mt-2 text-xs text-[#FF5C5C]">Pesan error di sini</p>
 ```
 
-Aturan:
-- Setiap input punya `<label>` atau `aria-label`.
-- Fokus harus terlihat (ring violet).
-- Error: border `#FF6B7A` + teks error + ikon, bukan warna saja.
-- Textarea dan select memakai gaya yang sama.
-- Checkbox / toggle aktif = `bg-violet`.
+Aturan: setiap input punya `label`/`aria-label`; error = border merah + teks + ikon; fokus terlihat jelas.
 
-### 7.3 Card
+### 6.3 Baris Daftar (pengganti grid 3 card)
 
-**Card standar (portrait, gaya kartu palet):**
+Untuk layanan, fitur, langkah, FAQ. **Pakai ini sebelum card.**
 
 ```tsx
-<div className="group rounded-[28px] bg-surface border border-line p-6 transition duration-300
-                hover:-translate-y-1 hover:border-violet/60 hover:shadow-[0_20px_48px_-16px_rgb(131_77_251/0.45)]">
-  <div className="size-11 rounded-xl bg-violet-soft text-violet-text grid place-items-center mb-5">{/* ikon */}</div>
-  <h3 className="text-xl font-semibold text-chalk mb-2">Judul Card</h3>
-  <p className="text-sm text-muted leading-relaxed">Deskripsi singkat 2–3 baris.</p>
-  <a className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-violet-text group-hover:text-chalk">Pelajari →</a>
+<ul className="border-t border-line">
+  <li className="group grid grid-cols-12 gap-4 items-baseline py-8 border-b border-line hover:bg-surface transition-colors">
+    <span className="col-span-2 md:col-span-1 font-mono text-xs text-subtle">01</span>
+    <h3 className="col-span-10 md:col-span-5 font-display text-2xl md:text-4xl tracking-tight text-fg">Brand Identity</h3>
+    <p className="col-span-12 md:col-span-5 text-muted md:text-lg">Deskripsi konkret satu sampai dua kalimat.</p>
+    <span aria-hidden className="hidden md:block col-span-1 justify-self-end text-fg group-hover:text-turbo group-hover:translate-x-1 transition">→</span>
+  </li>
+</ul>
+```
+
+### 6.4 Card (bila memang perlu)
+
+```tsx
+<div className="rounded-xl bg-surface border border-line p-6 md:p-8 hover:border-line-strong transition">
+  <span className="font-mono text-xs uppercase tracking-[0.12em] text-subtle">Case 01</span>
+  <h3 className="mt-3 font-display text-2xl tracking-tight text-fg">Judul</h3>
+  <p className="mt-2 text-muted">Deskripsi singkat.</p>
 </div>
 ```
 
-**Card sorotan (violet solid)**: satu per grup.
+- **Bento:** ukuran card berbeda (1×1, 2×1, 1×2), isinya beragam: foto, angka raksasa, kutipan, mockup. Jangan semua sama.
+- **Card Turbo:** `bg-turbo text-ink rounded-xl`, maksimal satu per grup.
+- **Card portfolio:** gambar penuh (rasio 4:5 atau 16:10) di atas, judul dan tag di bawah. Hover: gambar zoom 1.03 pelan, judul digarisbawahi Turbo. Gambar nyata, boleh grayscale lalu berwarna saat hover.
+- **Stat:** angka raksasa `tabular-nums` + label mono. Satu angka boleh Turbo.
+
+### 6.5 Label & Badge
+
+- **Label section:** `font-mono text-xs uppercase tracking-[0.12em] text-subtle`, format `[ 02 / Layanan ]`.
+- **Tag:** `border border-line rounded-md px-2.5 py-1 font-mono text-xs uppercase text-muted`.
+- **Status:** tint semantik + ikon/teks.
+- **Indikator "tersedia":** titik Turbo 8px + teks mono. Tidak berkedip.
+
+### 6.6 Navbar
+
+- `sticky top-0 z-50 bg-bg/90 backdrop-blur border-b border-line` (blur hanya di navbar).
+- Kiri: logo. Tengah/kanan: link `text-sm text-muted hover:text-fg`; aktif `text-fg` dengan garis bawah Turbo 2px.
+- Kanan: satu tombol Turbo kecil (`h-10`).
+- Mobile: tombol menu membuka layar penuh `bg-bg`, link besar (font display), rata kiri.
+
+### 6.7 Footer
+
+`border-t border-line`. Bagian atas: **teks raksasa** (nama brand atau ajakan kontak) ukuran `clamp(4rem, 14vw, 14rem)` di warna `fg`, boleh terpotong sedikit di bawah. Di bawahnya: kolom link `text-sm text-muted hover:text-fg`, dan baris copyright mono `text-xs text-subtle`.
+
+### 6.8 Blok Turbo Penuh (interlude)
+
+Satu per halaman, full-bleed, `bg-turbo text-ink`. Isi: kalimat raksasa (display, uppercase boleh) atau marquee teks besar. Tombol di dalamnya: `bg-ink text-fg rounded-lg`. Ini pengganti "CTA block ungu bergradient".
 
 ```tsx
-<div className="rounded-[28px] bg-violet text-chalk p-6 shadow-[0_24px_60px_-20px_rgb(131_77_251/0.7)]">
-```
-Deskripsi `text-chalk/80`, ikon di kotak `bg-chalk/15`.
-
-**Card Turbo (sangat langka)**: maksimal satu di seluruh halaman, untuk penawaran atau promo. `bg-turbo text-bg rounded-[28px]`.
-
-Aturan: maksimal **satu card sorotan per grup**. Grid: 1 kolom mobile, 2 tablet, 3 desktop. Jangan menyalin teks deskripsi antar card.
-
-**Stat card:** angka besar `tabular-nums`, label `text-sm text-muted`. Satu angka kunci boleh Turbo.
-
-**Bento grid:** card berbagai ukuran (1×1, 2×1, 1×2) dalam grid 4 kolom di desktop. Item terbesar boleh card sorotan violet.
-
-### 7.4 Badge, Tag, Eyebrow
-
-- **Eyebrow section**: `text-xs uppercase tracking-[0.14em] font-semibold text-violet-text`, didahului garis pendek atau titik violet.
-- **Badge status**: `rounded-full px-3 py-1 text-xs font-semibold`, latar tint + teks warna penuh + titik atau ikon.
-- **Badge "Baru"**: `bg-turbo text-bg` (hitung sebagai elemen Turbo).
-- **Tag kategori**: `bg-violet-soft text-violet-text rounded-full px-3 py-1 text-xs font-semibold`.
-
-### 7.5 Section Header
-
-```text
-[ Eyebrow ]
-[ Heading (Chalk + marker Turbo) ]
-[ Deskripsi max-w-xl, warna muted ]
+<section className="bg-turbo text-ink">
+  <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-24 md:py-40">
+    <h2 className="font-display text-[clamp(3rem,10vw,9rem)] leading-[0.92] tracking-[-0.04em]">
+      Punya proyek? Ayo bicara.
+    </h2>
+    <a className="mt-10 inline-flex h-12 items-center px-6 rounded-lg bg-ink text-fg text-sm font-semibold">Hubungi saya →</a>
+  </div>
+</section>
 ```
 
-Rata kiri di desktop; boleh rata tengah untuk section pendek. Satu CTA maksimal di bawah deskripsi.
+### 6.9 Tabel, Modal, Toast
 
-### 7.6 Navbar
+- **Tabel:** bungkus `rounded-xl border border-line bg-surface overflow-hidden`; header `bg-surface-2` mono uppercase `subtle`; baris `border-t border-line hover:bg-surface-2`.
+- **Modal:** overlay `bg-bg/80`, panel `bg-surface-3 border border-line-strong rounded-2xl p-8 max-w-lg`; Esc menutup, fokus terkunci.
+- **Toast:** `bg-surface-3 border border-line-strong rounded-lg text-sm text-fg`, posisi top-right, 3–4 detik.
 
-- `sticky top-0 z-50`, latar `bg-bg/80 backdrop-blur-xl border-b border-line`.
-- Kiri: logo. Tengah: link `text-sm font-medium text-muted hover:text-chalk`; link aktif `text-chalk` dengan garis bawah violet 2px.
-- Kanan: tombol Turbo **atau** secondary (bukan keduanya bersamaan dengan CTA hero di viewport yang sama).
-- Mobile: hamburger membuka drawer `bg-surface`; target sentuh ≥ 44px.
+### 6.10 Icon
 
-### 7.7 Footer
+- Outline Lucide, `strokeWidth 1.75`, `currentColor`, 16–20px.
+- Pakai seperlunya. Ikon **tidak** ditaruh di kotak berwarna.
+- Tombol ikon wajib `aria-label`.
 
-Latar `bg-surface border-t border-line`. Kolom: brand + tagline, Quick Links, Layanan, Kontak. Heading kolom `text-sm font-semibold text-chalk`; link `text-sm text-muted hover:text-chalk`. Baris bawah: copyright `text-xs text-subtle`.
+### 6.11 State
 
-### 7.8 Tabel Data
+- **Loading:** skeleton `bg-surface-2 animate-pulse rounded-lg`.
+- **Empty:** teks display besar + satu tombol Turbo.
+- **Error:** teks `#FF5C5C` + tombol "Coba lagi".
 
-- Dibungkus `rounded-[28px] bg-surface border border-line overflow-hidden`.
-- Header: `bg-surface-2 text-xs uppercase tracking-wider text-subtle`.
-- Baris: `border-t border-line hover:bg-surface-2`.
-- Aksi per baris: ghost icon button dengan `aria-label`.
-- Search/filter di atas tabel memakai input standar.
+---
 
-### 7.9 Modal & Dropdown
+## 7. Gambar & Visual
 
-- Overlay `bg-bg/70 backdrop-blur-sm`.
-- Panel `bg-surface-3 border border-line-strong rounded-[36px] p-8 max-w-lg`.
-- Tombol: primary di kanan, ghost "Batal" di kirinya.
-- Esc menutup, fokus terkunci dalam modal.
-
-### 7.10 Toast
-
-Latar `surface-3`, border `line-strong`, `rounded-2xl`, teks `text-sm text-chalk`, ikon sesuai semantik. Posisi `top-right`, durasi 3–4 detik. Untuk hasil aksi, bukan pesan permanen.
-
-### 7.11 Icon
-
-- Outline (Lucide), `strokeWidth 2`, `currentColor`.
-- 16–20px inline, 20–24px di kotak ikon.
-- Ikon aktif `text-violet-text`. Tidak boleh 3D atau emoji sebagai ikon UI.
-
-### 7.12 State umum
-
-- **Loading**: skeleton `bg-surface-2 animate-pulse rounded-2xl`.
-- **Empty**: ikon di kotak `bg-violet-soft`, judul, deskripsi, satu tombol primary.
-- **Error**: card dengan teks `#FF6B7A` dan tombol "Coba lagi".
-- **Disabled**: `opacity-40`.
+- Pakai **foto nyata, screenshot produk, atau mockup dalam frame browser/HP sederhana** (border `line`, radius 12px).
+- Foto boleh grayscale (`grayscale contrast-110`) agar menyatu dengan hitam, berwarna saat hover.
+- Tidak ada ilustrasi abstrak, blob, orb, atau mesh gradient.
+- Hero ideal: heading raksasa + satu gambar besar atau marquee logo/klien di bawahnya.
+- Gambar selalu punya `alt`; dekoratif `alt=""`.
 
 ---
 
@@ -402,35 +350,32 @@ Latar `surface-3`, border `line-strong`, `rounded-2xl`, teks `text-sm text-chalk
 
 | Pakai untuk | Aturan |
 |---|---|
-| Hover card | `-translate-y-1`, 300ms ease-out |
-| Tombol | `transition-all 200ms`, active `scale-[0.98]` |
-| Reveal saat scroll | fade + naik 16px, 500ms, sekali saja |
-| Glow latar hero | `animate-pulse` pelan, opsional |
-| Marquee (opsional) | linear, 30–40s, dalam wrapper `overflow-hidden` |
+| Hover link/baris | Warna dan panah bergeser 4px, 200ms |
+| Tombol | `active:scale-[0.98]`, 200ms |
+| Reveal saat scroll | Fade + naik 12px, 500ms, sekali |
+| Teks heading | Boleh reveal per baris (mask naik), 600ms |
+| Marquee | Linear, 30–40s, dalam wrapper `overflow-hidden` |
+| Gambar hover | Zoom 1.03, 600ms |
 
-Aturan:
-- Interaksi mikro 200–300ms; transisi besar maks 500ms.
-- **Wajib** hormati `prefers-reduced-motion` (matikan translate, reveal, marquee).
-- Tidak ada animasi infinite selain glow pulse dan marquee.
-- Tidak ada parallax besar, bouncing berlebihan, atau spinning dekoratif.
+Aturan: tidak ada animasi infinite selain marquee; tidak ada parallax berat, bouncing, atau glow berdenyut. **Wajib hormati `prefers-reduced-motion`.**
 
 ---
 
 ## 9. Urutan Halaman Landing
 
 ```text
-Navbar
-Hero (eyebrow + heading marker Turbo + paragraf + 1 CTA Turbo + visual dengan glow violet)
-Logo / bukti sosial
-Fitur (card standar, satu sorotan violet)
-Bento highlight
-Statistik (angka besar, satu Turbo)
-Testimoni
-CTA block (card besar violet, satu tombol Turbo)
-Footer
+Navbar (sticky, tombol Turbo kecil)
+Hero: heading raksasa (marker Turbo) + 1 paragraf + 1 CTA Turbo + gambar/mockup besar
+Marquee klien / teknologi
+[ 01 / Layanan ]  daftar baris bernomor
+[ 02 / Karya ]    portfolio: card gambar besar (bento)
+[ 03 / Angka ]    statistik raksasa
+[ 04 / Proses ]   langkah bernomor
+BLOK TURBO PENUH  (satu-satunya, CTA akhir)
+Footer dengan teks raksasa
 ```
 
-Setiap section diawali eyebrow + heading, diakhiri maksimal satu CTA.
+Setiap section: label bernomor → heading besar → konten → (opsional) satu tautan aksi.
 
 ---
 
@@ -438,21 +383,20 @@ Setiap section diawali eyebrow + heading, diakhiri maksimal satu CTA.
 
 Mobile-first: `sm 640`, `md 768`, `lg 1024`, `xl 1280`.
 
-- Hero: 1 kolom → `lg:grid-cols-2`.
-- Grid card: 1 → 2 → 3 kolom. Bento menyederhana jadi 1–2 kolom di mobile.
-- Heading turun ukuran di mobile (`text-5xl` → `lg:text-7xl`).
-- Tidak boleh horizontal overflow.
-- Konflik: **usability mobile > dekorasi desktop.** Glow dan blur diperkecil di mobile.
+- Heading pakai `clamp()`, tidak perlu breakpoint manual.
+- Grid 12 kolom di desktop → 1 kolom di mobile; baris daftar menumpuk (nomor, judul, deskripsi).
+- Bento menjadi 1–2 kolom di mobile.
+- Tidak boleh horizontal overflow (marquee dalam `overflow-hidden`).
+- Konflik: **usability mobile > dekorasi desktop.**
 
 ---
 
 ## 11. Accessibility
 
-- Ikuti tabel kontras di 2.4. `subtle` jangan dipakai untuk teks penting.
-- Violet murni tidak untuk teks kecil; pakai `violet-text`.
-- Semua input punya label; tombol ikon punya `aria-label`.
-- Gambar punya `alt`; dekoratif `alt=""`.
-- Fokus terlihat (ring violet 2px, offset terhadap latar) dan keyboard navigation berfungsi.
+- Ikuti tabel kontras di 2.3.
+- Body ≥ 16px di mobile; teks pendukung ≥ 14px.
+- Semua input ber-label; tombol ikon ber-`aria-label`.
+- Fokus terlihat (outline Turbo 2px) dan keyboard navigation berfungsi.
 - Target sentuh ≥ 44×44px.
 - Status tidak hanya lewat warna.
 - Hormati `prefers-reduced-motion`.
@@ -462,65 +406,65 @@ Mobile-first: `sm 640`, `md 768`, `lg 1024`, `xl 1280`.
 ## 12. Do & Don't
 
 **Do**
-- Latar Haiti, surface bertingkat, teks Chalk/muted.
-- Violet untuk interaksi, Turbo untuk satu aksi utama.
-- Heading Chalk + satu marker Turbo.
-- Card portrait radius 28px dengan border tipis dan glow saat hover.
-- Satu card sorotan per grup, satu CTA Turbo per viewport.
+- Hitam netral, garis tipis, tipografi raksasa.
+- Satu aksen Turbo, satu blok Turbo penuh per halaman.
+- Daftar baris bernomor, bento tidak seragam, foto/mockup nyata.
+- Copywriting konkret.
 
 **Don't**
-- Jangan `#000` atau putih murni sebagai latar.
-- Jangan Turbo di banyak tempat sekaligus.
-- Jangan violet murni untuk teks kecil.
-- Jangan drop shadow hitam, border tebal, atau gradient pelangi.
-- Jangan tombol/input pill (khusus badge dan avatar).
-- Jangan font atau warna baru di luar token.
-- Jangan menyalin teks dummy antar card.
+- Ungu, indigo, gradient, glow, blur blob, glassmorphism.
+- Pill, radius besar, shadow berwarna.
+- Grid 3 card seragam dengan ikon berkotak.
+- Semua rata tengah.
+- Font atau warna baru di luar token.
+- Menyalin teks dummy antar card.
 
 ---
 
 ## 13. Setup Teknis (Tailwind v4, CSS-first)
 
-Letakkan di `globals.css`:
+`globals.css`:
 
 ```css
 @import "tailwindcss";
 
 @theme inline {
-  --color-bg: #18102B;
-  --color-surface: #1F1638;
-  --color-surface-2: #271C45;
-  --color-surface-3: #31245A;
-  --color-line: #382B5E;
-  --color-line-strong: #4A3B78;
+  --color-bg: #0A0A0A;
+  --color-surface: #111111;
+  --color-surface-2: #181818;
+  --color-surface-3: #202020;
+  --color-line: #262626;
+  --color-line-strong: #3A3A3A;
 
-  --color-chalk: #F5F3FF;
-  --color-muted: #B8B0D4;
-  --color-subtle: #8A80AB;
-
-  --color-violet: #834DFB;
-  --color-violet-hover: #9566FF;
-  --color-violet-press: #6B3AE0;
-  --color-violet-text: #B79CFF;
-  --color-violet-soft: rgb(131 77 251 / 0.16);
+  --color-fg: #F2F1EC;
+  --color-muted: #A3A29C;
+  --color-subtle: #8A8983;
 
   --color-turbo: #F0E100;
   --color-turbo-hover: #FFF04D;
   --color-turbo-press: #D6C800;
+  --color-ink: #0A0A0A;
 
-  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-geist), sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
 html { color-scheme: dark; }
 
 body {
   background: var(--color-bg);
-  color: var(--color-chalk);
+  color: var(--color-fg);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
-::selection { background: var(--color-violet); color: var(--color-chalk); }
+::selection { background: var(--color-turbo); color: var(--color-ink); }
+
+:focus-visible { outline: 2px solid var(--color-turbo); outline-offset: 2px; }
+
+@keyframes marquee { to { transform: translateX(-50%); } }
+.animate-marquee { animation: marquee 35s linear infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -531,30 +475,32 @@ body {
 }
 ```
 
-Font di `layout.tsx`:
+`layout.tsx`:
 
 ```tsx
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta" });
+const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-bricolage" });
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
+const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
-<body className={jakarta.variable}>
+<body className={`${bricolage.variable} ${geist.variable} ${geistMono.variable}`}>
 ```
 
 ---
 
 ## 14. Checklist Sebelum Commit UI
 
-- [ ] Hanya memakai token dari dokumen ini.
-- [ ] Latar halaman = Haiti; tidak ada `#000` atau putih murni sebagai background.
-- [ ] Maksimal satu elemen Turbo dominan per viewport.
-- [ ] Teks kecil memakai `violet-text`, bukan violet murni.
-- [ ] Heading section = Chalk + satu marker Turbo.
-- [ ] Tombol/input rounded 16px, card 28px.
-- [ ] Hover card = border violet + glow, tanpa drop shadow hitam.
-- [ ] Responsif 1/2/3 kolom, tidak ada horizontal overflow.
-- [ ] Input punya label, fokus terlihat, target sentuh ≥ 44px.
-- [ ] `prefers-reduced-motion` dihormati, tidak ada animasi infinite baru.
+- [ ] **Tidak ada ungu/violet/indigo, gradient, glow, atau blur dekoratif.**
+- [ ] Latar halaman = `#0A0A0A`; abu netral tanpa tint.
+- [ ] Hanya satu aksen: Turbo. Maksimal satu CTA Turbo per viewport dan satu blok Turbo penuh per halaman.
+- [ ] Heading mengikuti pola Marker Turbo dan memakai ukuran `clamp` besar.
+- [ ] Layout asimetris, bukan grid 3 card seragam berikon.
+- [ ] Section punya label bernomor dan dipisah hairline.
+- [ ] Radius kecil (8/12/16), tanpa pill, tanpa drop shadow.
+- [ ] Gambar/mockup nyata; copywriting konkret.
+- [ ] Responsif, tanpa horizontal overflow; body ≥ 16px.
+- [ ] Input ber-label, fokus terlihat, target sentuh ≥ 44px, `prefers-reduced-motion` dihormati.
 - [ ] Komponen existing sudah dicek sebelum membuat yang baru.
 
 ---
@@ -562,9 +508,6 @@ const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakart
 ## 🏆 Golden Rule
 
 ```text
-JANGAN MEMBUAT STYLE BARU.
-Haiti sebagai latar. Violet untuk interaksi. Turbo untuk satu aksi.
-Cari pola paling mirip → pakai Existing Token + Existing Component.
+HITAM. SATU KUNING. TIPOGRAFI BESAR. GARIS TIPIS.
+Kalau terlihat seperti template AI, ulangi dari awal.
 ```
-
-> **Dark Haiti. Violet menggerakkan. Turbo menyorot. Chalk menjelaskan.**

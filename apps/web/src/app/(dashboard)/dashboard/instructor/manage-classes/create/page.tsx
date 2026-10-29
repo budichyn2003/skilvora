@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -13,20 +13,20 @@ import { InstructorService } from "@/services/instructor.service";
 export default function CreateClassPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // State form
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     level: "BEGINNER",
     price: 0,
-    categoryId: "" // Asumsi ID kategori "Frontend" adalah 1 sesuai seeder
+    categoryId: "", // Asumsi ID kategori "Frontend" adalah 1 sesuai seeder
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       await InstructorService.createClass(formData);
       toast.success("Kelas berhasil dibuat dan disimpan sebagai Draft!");
@@ -42,45 +42,57 @@ export default function CreateClassPage() {
     <div className="max-w-4xl">
       <div className="flex items-center gap-4 mb-8">
         <Button variant="secondary" size="icon" asChild>
-          <Link href="/dashboard/instructor/manage-classes"><ArrowLeft className="w-4 h-4" /></Link>
+          <Link href="/dashboard/instructor/manage-classes">
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-[#00033D]">Buat Kelas Baru</h1>
-          <p className="text-[#00033D]/70">Lengkapi detail awal kelas Anda.</p>
+          <h1 className="text-3xl font-bold text-fg">Buat Kelas Baru</h1>
+          <p className="text-muted">Lengkapi detail awal kelas Anda.</p>
         </div>
       </div>
 
       <GlassCard className="p-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-[#00033D]">Judul Kelas</label>
-            <Input 
-              required 
-              placeholder="Contoh: Pengenalan React.js untuk Pemula" 
+            <label className="text-sm font-semibold text-fg">Judul Kelas</label>
+            <Input
+              required
+              placeholder="Contoh: Pengenalan React.js untuk Pemula"
               value={formData.title}
-              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-[#00033D]">Deskripsi Singkat</label>
-            <textarea 
+            <label className="text-sm font-semibold text-fg">
+              Deskripsi Singkat
+            </label>
+            <textarea
               required
               rows={4}
-              className="w-full rounded-md border border-white/40 bg-white/50 px-3 py-2 text-sm text-[#00033D] placeholder:text-[#00033D]/40 focus:outline-none focus:ring-2 focus:ring-[#0033FF]/50"
+              className="w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm text-fg placeholder:text-fg/40 focus:outline-none focus:ring-2 focus:ring-turbo/40"
               placeholder="Jelaskan apa yang akan dipelajari siswa di kelas ini..."
               value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
             />
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-[#00033D]">Tingkat Kesulitan</label>
-              <select 
-                className="w-full rounded-md border border-white/40 bg-white/50 px-3 py-2.5 text-sm text-[#00033D] focus:outline-none focus:ring-2 focus:ring-[#0033FF]/50"
+              <label className="text-sm font-semibold text-fg">
+                Tingkat Kesulitan
+              </label>
+              <select
+                className="w-full rounded-md border border-line-strong bg-surface px-3 py-2.5 text-sm text-fg focus:outline-none focus:ring-2 focus:ring-turbo/40"
                 value={formData.level}
-                onChange={(e) => setFormData({...formData, level: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, level: e.target.value })
+                }
               >
                 <option value="BEGINNER">Pemula (Beginner)</option>
                 <option value="INTERMEDIATE">Menengah (Intermediate)</option>
@@ -89,22 +101,26 @@ export default function CreateClassPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-[#00033D]">Harga (Rp)</label>
-              <Input 
-                type="number" 
+              <label className="text-sm font-semibold text-fg">
+                Harga (Rp)
+              </label>
+              <Input
+                type="number"
                 min="0"
-                required 
-                placeholder="0 untuk gratis" 
+                required
+                placeholder="0 untuk gratis"
                 value={formData.price}
-                onChange={(e) => setFormData({...formData, price: Number(e.target.value)})}
+                onChange={(e) =>
+                  setFormData({ ...formData, price: Number(e.target.value) })
+                }
               />
             </div>
           </div>
 
-          <div className="pt-4 border-t border-white/20 flex justify-end">
+          <div className="pt-4 border-t border-line flex justify-end">
             <Button type="submit" disabled={isLoading} className="gap-2">
-              <Save className="w-4 h-4" /> 
-              {isLoading ? 'Menyimpan...' : 'Simpan & Lanjutkan'}
+              <Save className="w-4 h-4" />
+              {isLoading ? "Menyimpan..." : "Simpan & Lanjutkan"}
             </Button>
           </div>
         </form>

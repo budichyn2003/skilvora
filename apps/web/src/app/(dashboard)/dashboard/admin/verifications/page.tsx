@@ -77,16 +77,14 @@ export default function AdminVerificationsPage() {
 
   return (
     <div className="max-w-4xl">
-      <h1 className="text-3xl font-bold text-[#00033D] mb-2">
-        Verifikasi Pembayaran
-      </h1>
-      <p className="text-[#00033D]/70 mb-8">
+      <h1 className="text-3xl font-bold text-fg mb-2">Verifikasi Pembayaran</h1>
+      <p className="text-muted mb-8">
         Periksa bukti transfer, lalu setujui atau tolak dengan alasan.
       </p>
       {!paymentsEnabled && (
         <p
           role="status"
-          className="mb-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-800"
+          className="mb-5 rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm text-warning"
         >
           Pembayaran dinonaktifkan. Jangan menyetujui transaksi uang nyata pada
           mode prototipe.
@@ -94,19 +92,19 @@ export default function AdminVerificationsPage() {
       )}
       <GlassCard className="overflow-hidden p-0">
         {isLoading ? (
-          <p className="p-8 text-[#00033D]/60">Memuat transaksi...</p>
+          <p className="p-8 text-muted">Memuat transaksi...</p>
         ) : loadError ? (
-          <p role="alert" className="p-8 text-red-600">
+          <p role="alert" className="p-8 text-danger">
             {loadError}
           </p>
         ) : payments.filter(
             (payment) => payment.status === "PENDING" && payment.hasProof,
           ).length === 0 ? (
-          <p className="p-8 text-center text-[#00033D]/60">
+          <p className="p-8 text-center text-muted">
             Belum ada bukti transfer yang menunggu verifikasi.
           </p>
         ) : (
-          <div className="divide-y divide-[#00033D]/10">
+          <div className="divide-y divide-line">
             {payments
               .filter(
                 (payment) => payment.status === "PENDING" && payment.hasProof,
@@ -114,16 +112,16 @@ export default function AdminVerificationsPage() {
               .map((payment) => (
                 <div key={payment.id} className="space-y-4 p-5">
                   <div className="flex flex-col gap-1">
-                    <p className="font-bold text-[#00033D]">
+                    <p className="font-bold text-fg">
                       {payment.enrollment.class.title}
                     </p>
-                    <p className="text-sm text-[#00033D]/70">
+                    <p className="text-sm text-muted">
                       {payment.enrollment.user.name ||
                         payment.enrollment.user.email}{" "}
                       · Rp {Number(payment.amount).toLocaleString("id-ID")}
                     </p>
                     <a
-                      className="w-fit text-sm text-[#0033FF] underline"
+                      className="w-fit text-sm text-turbo underline"
                       href={payment.proofUrl || undefined}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -158,7 +156,7 @@ export default function AdminVerificationsPage() {
                     </Button>
                   </div>
                   {payment.audits?.length > 0 && (
-                    <p className="text-xs text-[#00033D]/60">
+                    <p className="text-xs text-muted">
                       Riwayat aktivitas:{" "}
                       {payment.audits
                         .map((audit: { action: string }) => audit.action)

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState } from "react";
 import { PublicLayout } from "@/components/layouts/public-layout";
@@ -8,9 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Award, Search, CheckCircle, AlertCircle } from "lucide-react";
 import { api } from "@/lib/axios";
 
+type CertificateVerification = {
+  isValid: boolean;
+  user?: { name?: string | null };
+  class?: { title?: string };
+  issuedAt: string;
+  revokedAt?: string | null;
+};
+
 export default function PublicVerifyPage() {
   const [code, setCode] = useState("");
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<CertificateVerification | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -23,7 +31,7 @@ export default function PublicVerifyPage() {
     try {
       const res = await api.get(`/enrollments/certificates/verify/${code}`);
       setResult(res.data);
-    } catch (err: any) {
+    } catch {
       setError("Sertifikat tidak ditemukan atau kode verifikasi tidak valid.");
     } finally {
       setIsLoading(false);
@@ -32,29 +40,46 @@ export default function PublicVerifyPage() {
 
   return (
     <PublicLayout>
-      <div className="container mx-auto px-6 py-20 max-w-3xl text-center">
-        <div className="w-16 h-16 mx-auto rounded-2xl bg-[#0033FF]/10 text-[#0033FF] flex items-center justify-center mb-6">
-          <Award className="w-8 h-8" />
-        </div>
-        <h1 className="text-4xl font-extrabold text-[#00033D] mb-4">Verifikasi Sertifikat Resmi</h1>
-        <p className="text-[#00033D]/70 mb-10 max-w-xl mx-auto">
-          Masukkan kode unik sertifikat kelulusan siswa untuk memastikan keaslian dokumen yang dikeluarkan oleh Skilvora.
+      <div className="mx-auto max-w-3xl px-4 py-14 text-center sm:px-6 sm:py-20">
+        <span className="mx-auto mb-6 grid size-14 place-items-center rounded-xl bg-surface-2 text-turbo">
+          <Award aria-hidden="true" className="size-7" />
+        </span>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-turbo">
+          Validasi kredensial
+        </p>
+        <h1 className="text-3xl font-bold leading-tight tracking-tight text-fg sm:text-4xl">
+          Verifikasi sertifikat <span className="text-turbo">Skilvora.</span>
+        </h1>
+        <p className="mx-auto mb-9 mt-4 max-w-xl leading-relaxed text-muted">
+          Masukkan kode unik sertifikat kelulusan siswa untuk memastikan
+          keaslian dokumen yang dikeluarkan oleh Skilvora.
         </p>
 
-        <GlassCard className="p-8 text-left mb-8 shadow-xl">
+        <GlassCard className="mb-6 p-5 text-left sm:p-7">
           <form onSubmit={handleVerify} className="space-y-4">
             <div>
-              <label className="text-xs font-bold text-[#00033D] uppercase tracking-wider mb-2 block">Kode Verifikasi Sertifikat</label>
-              <div className="flex gap-3">
-                <Input 
+              <label
+                htmlFor="certificate-code"
+                className="mb-2 block text-sm font-semibold text-fg"
+              >
+                Kode verifikasi sertifikat
+              </label>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Input
+                  id="certificate-code"
                   required
                   placeholder="Contoh: SKV-9821-XYZ..."
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  className="h-12 text-base"
+                  className="min-w-0 text-base"
                 />
-                <Button type="submit" disabled={isLoading} className="h-12 px-8 bg-[#0033FF] hover:bg-[#0029CC] text-white font-bold gap-2">
-                  <Search className="w-4 h-4" /> {isLoading ? "Memeriksa..." : "Cek Keaslian"}
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="shrink-0 sm:px-5"
+                >
+                  <Search aria-hidden="true" className="size-4" />
+                  {isLoading ? "Memeriksa..." : "Cek keaslian"}
                 </Button>
               </div>
             </div>
@@ -62,24 +87,55 @@ export default function PublicVerifyPage() {
         </GlassCard>
 
         {result && (
-          <GlassCard className="p-8 bg-green-50/50 border-green-200 text-left">
-            <div className={`flex items-center gap-3 font-bold text-lg mb-2 ${result.isValid ? 'text-green-700' : 'text-red-600'}`}>
-              {result.isValid ? <CheckCircle className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}
-              {result.isValid ? 'Sertifikat Sah & Terverifikasi' : 'Sertifikat Telah Dicabut'}
+          <GlassCard
+            className={`p-5 text-left sm:p-7 ${
+              result.isValid
+                ? "border-success/30 bg-success/10"
+                : "border-danger/30 bg-danger/10"
+            }`}
+          >
+            <div
+              className={`mb-4 flex items-center gap-3 text-lg font-semibold ${result.isValid ? "text-success" : "text-danger"}`}
+            >
+              {result.isValid ? (
+                <CheckCircle aria-hidden="true" className="size-6" />
+              ) : (
+                <AlertCircle aria-hidden="true" className="size-6" />
+              )}
+              {result.isValid
+                ? "Sertifikat sah dan terverifikasi"
+                : "Sertifikat telah dicabut"}
             </div>
-            <p className="text-sm text-[#00033D]/80">Diterbitkan atas nama: <strong className="text-[#00033D]">{result.user?.name}</strong></p>
-            <p className="text-sm text-[#00033D]/80">Untuk Kelas: <strong className="text-[#00033D]">{result.class?.title}</strong></p>
-            <p className="text-xs text-[#00033D]/50 mt-4">Tanggal Terbit: {new Date(result.issuedAt).toLocaleDateString('id-ID')}</p>
+            <p className="text-sm text-muted">
+              Diterbitkan atas nama:{" "}
+              <strong className="text-fg">{result.user?.name}</strong>
+            </p>
+            <p className="mt-2 text-sm text-muted">
+              Untuk kelas:{" "}
+              <strong className="text-fg">{result.class?.title}</strong>
+            </p>
+            <p className="mt-4 text-xs text-subtle">
+              Tanggal terbit:{" "}
+              {new Date(result.issuedAt).toLocaleDateString("id-ID")}
+            </p>
             {!result.isValid && result.revokedAt && (
-              <p className="text-xs text-red-600 mt-1">Tanggal pencabutan: {new Date(result.revokedAt).toLocaleDateString('id-ID')}</p>
+              <p className="mt-1 text-xs text-danger">
+                Tanggal pencabutan:{" "}
+                {new Date(result.revokedAt).toLocaleDateString("id-ID")}
+              </p>
             )}
           </GlassCard>
         )}
 
         {error && (
-          <GlassCard className="p-6 bg-red-50/50 border-red-200 text-left flex items-center gap-4">
-            <AlertCircle className="w-6 h-6 text-red-500 shrink-0" />
-            <p className="text-sm font-semibold text-red-600">{error}</p>
+          <GlassCard className="flex items-center gap-4 border-danger/30 bg-danger/10 p-5 text-left">
+            <AlertCircle
+              aria-hidden="true"
+              className="size-6 shrink-0 text-danger"
+            />
+            <p role="alert" className="text-sm font-semibold text-danger">
+              {error}
+            </p>
           </GlassCard>
         )}
       </div>

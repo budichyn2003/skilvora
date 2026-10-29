@@ -1,15 +1,20 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Users, BookOpen } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { GlassCard } from "@/components/ui/glass-card";
-import { Badge } from "@/components/ui/badge";
 import { InstructorService } from "@/services/instructor.service";
 
+type InstructorClass = {
+  id: string;
+  title: string;
+  status: string;
+  _count?: { modules?: number | null; enrollments?: number | null };
+};
+
 export default function ManageClassesPage() {
-  const [classes, setClasses] = useState<any[]>([]);
+  const [classes, setClasses] = useState<InstructorClass[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -19,73 +24,90 @@ export default function ManageClassesPage() {
   }, []);
 
   return (
-    <div className="max-w-6xl">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-[#00033D] mb-2">Manajemen Kelas</h1>
-          <p className="text-[#00033D]/70">Kelola materi pembelajaran, kuis, dan pantau siswa Anda.</p>
-        </div>
-        <Button asChild className="gap-2">
-          <Link href="/dashboard/instructor/manage-classes/create">
-            <Plus className="w-4 h-4" /> Buat Kelas Baru
-          </Link>
-        </Button>
-      </div>
-
-      {isLoading ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
-          {[1, 2, 3].map(i => <div key={i} className="h-48 bg-[#EAEDFB]/50 rounded-2xl"></div>)}
-        </div>
-      ) : classes.length === 0 ? (
-        <GlassCard className="p-12 text-center flex flex-col items-center justify-center">
-          <div className="w-16 h-16 bg-[#EAEDFB] rounded-full flex items-center justify-center mb-4 text-[#0033FF]">
-            <BookOpen className="w-8 h-8" />
+    <div className="mx-auto w-full max-w-6xl">
+      <header className="mb-12 border-b border-line pb-8">
+        <p className="mb-5 font-mono text-xs uppercase tracking-[0.16em] text-turbo">
+          01 / Ruang instruktur
+        </p>
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="font-display text-4xl font-semibold tracking-tight sm:text-6xl">
+              Manajemen kelas
+            </h1>
+            <p className="mt-4 max-w-2xl leading-relaxed text-muted">
+              Perbarui materi, susun evaluasi, dan pantau siswa yang mengikuti
+              kelas Anda.
+            </p>
           </div>
-          <h3 className="text-xl font-bold text-[#00033D] mb-2">Belum ada kelas</h3>
-          <p className="text-[#00033D]/60 mb-6 max-w-md">Anda belum membuat kelas apa pun. Mulai bagikan keahlian Anda dengan membuat kelas pertama sekarang.</p>
-          <Button asChild>
-            <Link href="/dashboard/instructor/manage-classes/create">Buat Kelas Pertama</Link>
+          <Button asChild className="w-full sm:w-auto">
+            <Link href="/dashboard/instructor/manage-classes/create">
+              Buat kelas <ArrowRight size={16} aria-hidden="true" />
+            </Link>
           </Button>
-        </GlassCard>
-      ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {classes.map((course) => (
-            <GlassCard key={course.id} className="p-0 overflow-hidden flex flex-col hover:shadow-lg transition-shadow">
-              <div className="h-40 bg-[#EAEDFB] relative">
-                {course.thumbnail ? (
-                  <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[#00033D]/30 font-medium">
-                    Tanpa Thumbnail
-                  </div>
-                )}
-                <div className="absolute top-4 right-4">
-                  <Badge variant={course.status === 'PUBLISHED' ? 'success' : 'danger'}>
-                    {course.status}
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="p-6 flex-1 flex flex-col">
-                <h3 className="text-lg font-bold text-[#00033D] mb-4 line-clamp-2">{course.title}</h3>
-                
-                <div className="flex items-center gap-4 mt-auto mb-6">
-                  <div className="flex items-center gap-1.5 text-sm text-[#00033D]/60">
-                    <BookOpen className="w-4 h-4" /> {course._count?.modules || 0} Modul
-                  </div>
-                  <div className="flex items-center gap-1.5 text-sm text-[#00033D]/60">
-                    <Users className="w-4 h-4" /> {course._count?.enrollments || 0} Siswa
-                  </div>
-                </div>
-
-                <Button variant="secondary" className="w-full" asChild>
-                  <Link href={`/dashboard/instructor/manage-classes/${course.id}`}>Kelola Konten</Link>
-                </Button>
-              </div>
-            </GlassCard>
-          ))}
         </div>
-      )}
+      </header>
+
+      <section>
+        <div className="mb-4 flex items-center justify-between font-mono text-xs uppercase tracking-wider text-subtle">
+          <h2>02 / Kurikulum</h2>
+          <span>{classes.length} kelas</span>
+        </div>
+
+        {isLoading ? (
+          <div
+            aria-label="Memuat kelas"
+            className="h-48 animate-pulse border-y border-line bg-surface"
+          />
+        ) : classes.length === 0 ? (
+          <div className="border-y border-line py-8">
+            <h3 className="font-display text-2xl font-medium">
+              Belum ada kelas
+            </h3>
+            <p className="mt-2 max-w-xl leading-relaxed text-muted">
+              Mulai bagikan keahlian Anda dengan membuat kelas dan menambahkan
+              materi.
+            </p>
+            <Link
+              href="/dashboard/instructor/manage-classes/create"
+              className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-turbo"
+            >
+              Buat kelas pertama <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+          </div>
+        ) : (
+          <ol className="border-t border-line">
+            {classes.map((course, index) => (
+              <li
+                key={course.id}
+                className="grid gap-4 border-b border-line py-5 sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:items-center sm:gap-6"
+              >
+                <span className="font-mono text-sm text-subtle">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <div className="min-w-0">
+                  <p className="font-mono text-xs uppercase tracking-wider text-muted">
+                    {course.status}{" "}
+                    <span className="px-1 text-line-strong">/</span>{" "}
+                    {course._count?.modules || 0} modul{" "}
+                    <span className="px-1 text-line-strong">/</span>{" "}
+                    {course._count?.enrollments || 0} siswa
+                  </p>
+                  <h3 className="mt-1 truncate font-display text-xl font-medium">
+                    {course.title}
+                  </h3>
+                </div>
+                <Button variant="ghost" asChild className="w-full sm:w-auto">
+                  <Link
+                    href={`/dashboard/instructor/manage-classes/${course.id}`}
+                  >
+                    Kelola konten <ArrowRight size={16} aria-hidden="true" />
+                  </Link>
+                </Button>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
     </div>
   );
 }

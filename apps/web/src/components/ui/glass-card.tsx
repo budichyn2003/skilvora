@@ -1,35 +1,34 @@
-import { HTMLAttributes, forwardRef } from "react"
-import { cn } from "@/lib/utils"
+import { HTMLAttributes, forwardRef } from "react";
+import { cn } from "@/lib/utils";
 
 export interface GlassCardProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: "light" | "dark" | "accent"
+  variant?: "light" | "dark" | "accent";
 }
 
 const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
   ({ className, variant = "light", children, ...props }, ref) => {
-    // Definisi formula Glassmorphism sesuai UI.md
     const variants = {
-      light: "bg-white/30 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,3,61,0.12)] text-[#00033D]",
-      dark: "bg-[#030812]/50 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,3,61,0.12)] text-white",
-      accent: "bg-[#977DFF]/15 backdrop-blur-xl border border-[#977DFF]/30 shadow-[0_8px_32px_rgba(0,3,61,0.12)] text-[#00033D]",
-    }
+      light: "bg-surface border border-line text-fg",
+      dark: "bg-surface-2 border border-line text-fg",
+      accent: "bg-turbo border border-turbo text-ink",
+    };
 
     return (
       <div
         ref={ref}
         className={cn(
-          "rounded-2xl transition-all duration-200 ease-out",
+          "rounded-xl transition-colors duration-150",
           variants[variant],
-          className
+          className,
         )}
         {...props}
       >
         {children}
       </div>
-    )
-  }
-)
+    );
+  },
+);
 
-GlassCard.displayName = "GlassCard"
+GlassCard.displayName = "GlassCard";
 
-export { GlassCard }
+export { GlassCard };

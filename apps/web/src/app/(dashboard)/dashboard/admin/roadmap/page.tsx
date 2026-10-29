@@ -154,16 +154,16 @@ export default function AdminRoadmapPage() {
   return (
     <div className="max-w-6xl space-y-8">
       <div>
-        <h1 className="mb-2 text-3xl font-bold text-[#00033D]">
+        <h1 className="mb-2 text-3xl font-bold text-fg">
           Kelola Roadmap Pembelajaran
         </h1>
-        <p className="text-[#00033D]/70">
+        <p className="text-muted">
           Susun node dari kelas published; urutan dapat diubah sebelum disimpan.
         </p>
       </div>
 
       <GlassCard className="p-6">
-        <h2 className="mb-5 text-xl font-bold text-[#00033D]">
+        <h2 className="mb-5 text-xl font-bold text-fg">
           {editingId ? "Edit roadmap" : "Buat roadmap"}
         </h2>
         <form className="space-y-4" onSubmit={save}>
@@ -188,7 +188,7 @@ export default function AdminRoadmapPage() {
           </div>
           <textarea
             aria-label="Deskripsi roadmap"
-            className="min-h-24 w-full rounded-xl border border-[#00033D]/15 bg-white px-4 py-3 text-sm"
+            className="min-h-24 w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm"
             placeholder="Deskripsi"
             value={form.description}
             onChange={(event) =>
@@ -198,7 +198,7 @@ export default function AdminRoadmapPage() {
           <div className="flex flex-col gap-3 sm:flex-row">
             <select
               aria-label="Status roadmap"
-              className="h-11 rounded-xl border border-[#00033D]/15 bg-white px-3 text-sm"
+              className="h-11 rounded-xl border border-line bg-surface px-3 text-sm"
               value={form.status}
               onChange={(event) =>
                 setForm({
@@ -212,7 +212,7 @@ export default function AdminRoadmapPage() {
             </select>
             <select
               aria-label="Tambahkan kelas ke roadmap"
-              className="h-11 flex-1 rounded-xl border border-[#00033D]/15 bg-white px-3 text-sm"
+              className="h-11 flex-1 rounded-xl border border-line bg-surface px-3 text-sm"
               value=""
               onChange={(event) => addNode(event.target.value)}
             >
@@ -234,9 +234,9 @@ export default function AdminRoadmapPage() {
               {form.nodes.map((node, index) => (
                 <li
                   key={node.classId}
-                  className="flex flex-wrap items-center gap-2 rounded-xl bg-white/70 p-3"
+                  className="flex flex-wrap items-center gap-2 rounded-xl bg-surface p-3"
                 >
-                  <span className="w-7 text-sm font-bold text-[#0033FF]">
+                  <span className="w-7 text-sm font-bold text-turbo">
                     {index + 1}.
                   </span>
                   <Input
@@ -254,7 +254,7 @@ export default function AdminRoadmapPage() {
                       }))
                     }
                   />
-                  <span className="text-xs text-[#00033D]/60">
+                  <span className="text-xs text-muted">
                     {classes.find((course) => course.id === node.classId)
                       ?.title || node.classId}
                   </span>
@@ -317,23 +317,23 @@ export default function AdminRoadmapPage() {
 
       <GlassCard className="overflow-hidden p-0">
         {isLoading ? (
-          <p className="p-6 text-[#00033D]/60">Memuat roadmap...</p>
+          <p className="p-6 text-muted">Memuat roadmap...</p>
         ) : loadError ? (
-          <p role="alert" className="p-6 text-red-600">
+          <p role="alert" className="p-6 text-danger">
             {loadError}
           </p>
         ) : roadmaps.length === 0 ? (
-          <p className="p-6 text-[#00033D]/60">Belum ada roadmap.</p>
+          <p className="p-6 text-muted">Belum ada roadmap.</p>
         ) : (
-          <div className="divide-y divide-[#00033D]/10">
+          <div className="divide-y divide-line">
             {roadmaps.map((roadmap) => (
               <div
                 key={roadmap.id}
                 className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
-                  <p className="font-bold text-[#00033D]">{roadmap.title}</p>
-                  <p className="text-sm text-[#00033D]/60">
+                  <p className="font-bold text-fg">{roadmap.title}</p>
+                  <p className="text-sm text-muted">
                     /{roadmap.slug} · {roadmap.status} · {roadmap.nodes.length}{" "}
                     node
                   </p>

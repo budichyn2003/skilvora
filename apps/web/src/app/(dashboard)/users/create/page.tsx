@@ -13,10 +13,12 @@ export default function CreateUserPage() {
     name: "",
     email: "",
     password: "",
-    role: "USER"
+    role: "USER",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -29,7 +31,9 @@ export default function CreateUserPage() {
       toast.success("Berhasil menambahkan user baru!");
       router.push("/dashboard/users"); // Kembali ke tabel setelah sukses
     } catch (error: any) {
-      toast.error("Gagal: " + (error.response?.data?.message || "Terjadi kesalahan"));
+      toast.error(
+        "Gagal: " + (error.response?.data?.message || "Terjadi kesalahan"),
+      );
     } finally {
       setLoading(false);
     }
@@ -43,15 +47,19 @@ export default function CreateUserPage() {
             <h1 className="text-3xl font-bold text-zinc-900">Tambah User</h1>
             <p className="text-zinc-500">Standar Form Input Core Engine</p>
           </div>
-          <Button onClick={() => router.back()} variant="secondary">Batal</Button>
+          <Button onClick={() => router.back()} variant="secondary">
+            Batal
+          </Button>
         </div>
 
-        <div className="bg-white rounded-lg shadow border border-zinc-200 p-6">
+        <div className="bg-surface rounded-lg border border-zinc-200 p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">Nama Lengkap</label>
-              <input 
-                type="text" 
+              <label className="block text-sm font-medium text-zinc-700 mb-1">
+                Nama Lengkap
+              </label>
+              <input
+                type="text"
                 name="name"
                 required
                 value={formData.name}
@@ -62,9 +70,11 @@ export default function CreateUserPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">Email</label>
-              <input 
-                type="email" 
+              <label className="block text-sm font-medium text-zinc-700 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
                 name="email"
                 required
                 value={formData.email}
@@ -75,9 +85,11 @@ export default function CreateUserPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">Password</label>
-              <input 
-                type="password" 
+              <label className="block text-sm font-medium text-zinc-700 mb-1">
+                Password
+              </label>
+              <input
+                type="password"
                 name="password"
                 required
                 value={formData.password}
@@ -88,12 +100,14 @@ export default function CreateUserPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">Role Akses</label>
-              <select 
+              <label className="block text-sm font-medium text-zinc-700 mb-1">
+                Role Akses
+              </label>
+              <select
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-zinc-300 rounded-md focus:ring-2 focus:ring-zinc-900 focus:outline-none bg-white"
+                className="w-full px-4 py-2 border border-zinc-300 rounded-md focus:ring-2 focus:ring-zinc-900 focus:outline-none bg-surface"
               >
                 <option value="USER">User Reguler</option>
                 <option value="ADMIN">Administrator</option>

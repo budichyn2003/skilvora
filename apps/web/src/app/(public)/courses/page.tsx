@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { PublicLayout } from "@/components/layouts/public-layout";
 import { CourseCatalog } from "./course-catalog";
 
 export const metadata: Metadata = {
@@ -26,9 +25,5 @@ async function getPublishedCourses() {
 
 export default async function CatalogPage() {
   const courses = await getPublishedCourses();
-  return (
-    <PublicLayout>
-      <CourseCatalog courses={courses} />
-    </PublicLayout>
-  );
+  return <CourseCatalog courses={courses} />;
 }

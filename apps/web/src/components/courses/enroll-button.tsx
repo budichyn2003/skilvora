@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
-import { isAxiosError } from 'axios';
-import { Button } from '@/components/ui/button';
-import { EnrollmentService } from '@/services/enrollment.service';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { isAxiosError } from "axios";
+import { Button } from "@/components/ui/button";
+import { EnrollmentService } from "@/services/enrollment.service";
 
 interface EnrollButtonProps {
   classId: string;
@@ -20,19 +20,26 @@ export function EnrollButton({ classId, isFree }: EnrollButtonProps) {
     setIsLoading(true);
     try {
       await EnrollmentService.enroll(classId);
-      toast.success(isFree ? 'Berhasil mendaftar kelas gratis!' : 'Pendaftaran berhasil, silakan selesaikan pembayaran.');
-      
+      toast.success(
+        isFree
+          ? "Berhasil mendaftar kelas gratis!"
+          : "Pendaftaran berhasil, silakan selesaikan pembayaran.",
+      );
+
       // Redirect ke dashboard untuk mulai belajar atau membayar
-      router.push('/dashboard/classes');
+      router.push("/dashboard/classes");
     } catch (error: unknown) {
       const message = isAxiosError<{ message?: string }>(error)
         ? error.response?.data?.message
         : undefined;
-      const isUnauthorized = isAxiosError(error) && error.response?.status === 401;
-      toast.error(message || 'Gagal mendaftar kelas. Silakan login terlebih dahulu.');
-      
+      const isUnauthorized =
+        isAxiosError(error) && error.response?.status === 401;
+      toast.error(
+        message || "Gagal mendaftar kelas. Silakan login terlebih dahulu.",
+      );
+
       if (isUnauthorized) {
-        router.push('/auth/login');
+        router.push("/auth/login");
       }
     } finally {
       setIsLoading(false);
@@ -40,15 +47,17 @@ export function EnrollButton({ classId, isFree }: EnrollButtonProps) {
   };
 
   return (
-    <Button 
-      size="lg" 
-      className="w-full mb-4" 
-      onClick={handleEnroll} 
+    <Button
+      size="lg"
+      className="w-full mb-4"
+      onClick={handleEnroll}
       disabled={isLoading}
     >
-      {isLoading 
-        ? 'Memproses...' 
-        : (isFree ? 'Daftar Kelas Gratis' : 'Beli Kelas Sekarang')}
+      {isLoading
+        ? "Memproses..."
+        : isFree
+          ? "Daftar Kelas Gratis"
+          : "Beli Kelas Sekarang"}
     </Button>
   );
 }

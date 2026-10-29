@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PublicLayout } from "@/components/layouts/public-layout";
 import { GlassCard } from "@/components/ui/glass-card";
+import { ArrowLeft, ArrowRight, Compass } from "lucide-react";
 
 type RoadmapData = {
   title: string;
@@ -69,43 +70,51 @@ export default async function RoadmapDetailPage({
 
   return (
     <PublicLayout>
-      <article className="container mx-auto max-w-4xl px-6 py-16">
+      <article className="mx-auto max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
         <header className="mb-10">
           <Link
             href="/roadmap"
-            className="mb-4 inline-block text-sm font-semibold text-[#0033FF]"
+            className="mb-6 inline-flex min-h-11 items-center gap-2 rounded-xl text-sm font-semibold text-turbo transition-colors hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turbo"
           >
-            ← Semua roadmap
+            <ArrowLeft aria-hidden="true" className="size-4" />
+            Semua roadmap
           </Link>
-          <h1 className="mb-3 text-4xl font-extrabold text-[#00033D]">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-turbo">
+            Jalur belajar
+          </p>
+          <h1 className="text-4xl font-bold leading-tight tracking-tight text-fg sm:text-5xl">
             {roadmap.title}
           </h1>
           {roadmap.description && (
-            <p className="text-lg text-[#00033D]/70">{roadmap.description}</p>
+            <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted sm:text-lg">
+              {roadmap.description}
+            </p>
           )}
         </header>
-        <ol className="space-y-4">
+        <ol className="relative space-y-4 before:absolute before:bottom-8 before:left-6 before:top-8 before:w-px before:bg-line">
           {roadmap.nodes.map((node) => (
             <li key={node.id}>
-              <GlassCard className="flex gap-4 p-5">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0033FF]/10 font-bold text-[#0033FF]">
+              <GlassCard className="relative flex gap-4 p-5 sm:p-6">
+                <span className="z-10 flex size-12 shrink-0 items-center justify-center rounded-xl border border-line bg-surface text-sm font-semibold text-turbo">
                   {node.order}
                 </span>
-                <div>
-                  <h2 className="font-bold text-[#00033D]">{node.title}</h2>
-                  <p className="mt-1 text-sm text-[#00033D]/60">
+                <div className="min-w-0 flex-1">
+                  <h2 className="font-semibold text-fg">{node.title}</h2>
+                  <p className="mt-1 text-sm text-muted">
                     {node.class.level} · {node.class.title}
                   </p>
                   {node.class.description && (
-                    <p className="mt-2 text-sm text-[#00033D]/70">
+                    <p className="mt-3 text-sm leading-relaxed text-muted">
                       {node.class.description}
                     </p>
                   )}
                   <Link
                     href={`/courses/${node.class.slug}`}
-                    className="mt-3 inline-block text-sm font-semibold text-[#0033FF]"
+                    className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-turbo transition-colors hover:text-fg"
                   >
-                    Lihat kelas →
+                    <Compass aria-hidden="true" className="size-4" />
+                    Lihat kelas
+                    <ArrowRight aria-hidden="true" className="size-4" />
                   </Link>
                 </div>
               </GlassCard>

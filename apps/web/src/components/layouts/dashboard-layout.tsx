@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -16,11 +16,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const profile = await AuthService.getProfile();
-        setUser(profile);
-      } catch (error) {
-        Cookies.remove('token');
-        router.push('/auth/login');
+        setUser(await AuthService.getProfile());
+      } catch {
+        Cookies.remove("token");
+        router.push("/auth/login");
       } finally {
         setLoading(false);
       }
@@ -28,79 +27,113 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     fetchProfile();
   }, [router]);
 
+  const logout = async () => {
+    try {
+      await AuthService.logout();
+    } catch {
+      toast.error(
+        "Sesi server tidak dapat diakhiri. Token lokal tetap dihapus.",
+      );
+    } finally {
+      Cookies.remove("token");
+      router.replace("/auth/login");
+      router.refresh();
+    }
+  };
+
   if (loading) {
-    return <div className="min-h-screen bg-white flex items-center justify-center text-[#00033D]">Memuat dasbor...</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-bg text-muted">
+        Memuat dasbor...
+      </div>
+    );
   }
 
-  const isActive = (path: string) => pathname === path;
-  const linkClass = (path: string) => `px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive(path) ? 'bg-[#0033FF] text-white shadow-[0_4px_20px_rgba(0,51,255,0.35)]' : 'text-white/70 hover:text-white hover:bg-white/10'}`;
-
-  // Menentukan route beranda berdasarkan role
-  const homeRoute = user?.role === 'STUDENT' ? '/dashboard/student' : user?.role === 'INSTRUCTOR' ? '/dashboard/instructor' : '/dashboard/admin';
+  const homeRoute =
+    user?.role === "STUDENT"
+      ? "/dashboard/student"
+      : user?.role === "INSTRUCTOR"
+        ? "/dashboard/instructor"
+        : "/dashboard/admin";
+  const links =
+    user?.role === "STUDENT"
+      ? [
+          { href: homeRoute, label: "Ringkasan" },
+          { href: "/dashboard/student/classes", label: "Kelas saya" },
+          { href: "/dashboard/student/certificates", label: "Sertifikat" },
+        ]
+      : user?.role === "INSTRUCTOR"
+        ? [
+            { href: homeRoute, label: "Ringkasan" },
+            {
+              href: "/dashboard/instructor/manage-classes",
+              label: "Kelola kelas",
+            },
+            { href: "/dashboard/instructor/statistics", label: "Pendapatan" },
+          ]
+        : [
+            { href: homeRoute, label: "Ringkasan" },
+            { href: "/dashboard/admin/roadmap", label: "Roadmap" },
+            { href: "/dashboard/admin/verifications", label: "Verifikasi" },
+            { href: "/dashboard/admin/users", label: "Pengguna" },
+          ];
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <div className="min-h-screen flex bg-white">
-      {/* Sidebar - Dark Glass */}
-      <aside className="w-64 fixed inset-y-0 left-0 z-40 bg-[#030812]/90 backdrop-blur-2xl border-r border-white/10 flex flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-white/10">
-          <Link href="/" className="font-bold text-xl text-white tracking-tight">
-            Skilvora<span className="text-[#0033FF]">.</span>
-          </Link>
-        </div>
-        
-        <div className="px-6 py-4 border-b border-white/10 mb-2">
-          <p className="text-xs text-white/50 font-medium uppercase tracking-wider mb-1">{user?.role}</p>
-          <p className="text-sm text-white font-bold truncate">{user?.name}</p>
-        </div>
-
-        <nav className="flex-1 px-4 py-4 flex flex-col gap-2 overflow-y-auto">
-          <Link href={homeRoute} className={linkClass(homeRoute)}>Beranda Dasbor</Link>
-
-          {user?.role === 'STUDENT' && (
-            <>
-              <Link href="/dashboard/student/classes" className={linkClass('/dashboard/student/classes')}>Kelas Saya</Link>
-              <Link href="/dashboard/student/certificates" className={linkClass('/dashboard/student/certificates')}>Sertifikat</Link>
-            </>
-          )}
-
-          {user?.role === 'INSTRUCTOR' && (
-            <>
-              <Link href="/dashboard/instructor/manage-classes" className={linkClass('/dashboard/instructor/manage-classes')}>Kelola Kelas</Link>
-              <Link href="/dashboard/instructor/statistics" className={linkClass('/dashboard/instructor/statistics')}>Laporan Pendapatan</Link>
-            </>
-          )}
-
-          {user?.role === 'ADMIN' && (
-            <>
-              <Link href="/dashboard/admin/roadmap" className={linkClass('/dashboard/admin/roadmap')}>Kelola Roadmap</Link>
-              <Link href="/dashboard/admin/verifications" className={linkClass('/dashboard/admin/verifications')}>Verifikasi Pembayaran</Link>
-              <Link href="/dashboard/admin/users" className={linkClass('/dashboard/admin/users')}>Manajemen Pengguna</Link>
-            </>
-          )}
-        </nav>
-        
-        <div className="p-4">
-          <button 
-            onClick={async () => {
-              try {
-                await AuthService.logout();
-              } catch (error) {
-                toast.error('Sesi server tidak dapat diakhiri. Token lokal tetap dihapus.');
-              } finally {
-                Cookies.remove('token');
-                router.replace('/auth/login');
-                router.refresh();
-              }
-            }}
-            className="w-full px-4 py-2 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-xl transition-colors text-left"
+    <div className="min-h-screen bg-bg text-fg md:grid md:grid-cols-[248px_minmax(0,1fr)]">
+      <aside className="hidden border-r border-line bg-surface md:flex md:flex-col">
+        <div className="border-b border-line px-6 py-6">
+          <Link
+            href="/"
+            className="font-display text-xl font-bold tracking-tight"
           >
-            Keluar
+            Skilvora<span className="text-turbo">.</span>
+          </Link>
+          <p className="mt-8 font-mono text-xs uppercase tracking-wider text-subtle">
+            {user?.role}
+          </p>
+          <p className="mt-1 truncate text-sm text-muted">{user?.name}</p>
+        </div>
+        <nav
+          aria-label="Navigasi dasbor"
+          className="flex-1 space-y-1 px-4 py-6"
+        >
+          {links.map(({ href, label }, index) => (
+            <Link
+              key={href}
+              href={href}
+              aria-current={isActive(href) ? "page" : undefined}
+              className={`flex min-h-11 items-center gap-3 border-l-2 px-3 text-sm transition-colors ${
+                isActive(href)
+                  ? "border-turbo bg-surface-2 text-fg"
+                  : "border-transparent text-muted hover:bg-surface-2 hover:text-fg"
+              }`}
+            >
+              <span className="font-mono text-xs text-subtle">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              {label}
+            </Link>
+          ))}
+          <Link
+            href="/dashboard/profile"
+            className="mt-6 flex min-h-11 items-center border-t border-line px-3 pt-4 text-sm text-muted hover:text-fg"
+          >
+            Pengaturan profil
+          </Link>
+        </nav>
+        <div className="border-t border-line p-4">
+          <button
+            type="button"
+            onClick={logout}
+            className="min-h-11 w-full px-3 text-left text-sm text-muted transition-colors hover:text-danger"
+          >
+            Keluar dari akun
           </button>
         </div>
       </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 ml-64 p-8">
+      <main className="min-w-0 px-4 py-8 sm:px-6 lg:px-10 lg:py-12">
         {children}
       </main>
     </div>

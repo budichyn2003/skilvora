@@ -1,29 +1,52 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-bricolage",
+});
+
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+});
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | Skilvora',
-    default: 'Skilvora - Platform Belajar Coding & IT Terdepan',
+    template: "%s | Skilvora",
+    default: "Skilvora - Platform Belajar Coding & IT Terdepan",
   },
-  description: "Tingkatkan keahlian programming Anda bersama Skilvora. Pelajari modul terstruktur dari praktisi terbaik dan dapatkan sertifikat industri siap kerja.",
-  keywords: ["LMS", "Kursus Online", "Belajar Coding", "Programming", "Bootcamp IT", "Skilvora"],
+  description:
+    "Tingkatkan keahlian programming Anda bersama Skilvora. Pelajari modul terstruktur dari praktisi terbaik dan dapatkan sertifikat industri siap kerja.",
+  keywords: [
+    "LMS",
+    "Kursus Online",
+    "Belajar Coding",
+    "Programming",
+    "Bootcamp IT",
+    "Skilvora",
+  ],
   openGraph: {
-    title: 'Skilvora - Platform Belajar Coding & IT',
-    description: 'Tingkatkan keahlian programming Anda dan raih sertifikat industri.',
-    url: 'https://skilvora-omega.vercel.app/',
-    siteName: 'Skilvora',
-    locale: 'id_ID',
-    type: 'website',
+    title: "Skilvora - Platform Belajar Coding & IT",
+    description:
+      "Tingkatkan keahlian programming Anda dan raih sertifikat industri.",
+    url: "https://skilvora-omega.vercel.app/",
+    siteName: "Skilvora",
+    locale: "id_ID",
+    type: "website",
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'Skilvora - Platform Belajar Coding & IT',
-    description: 'Tingkatkan keahlian programming Anda dan raih sertifikat industri.',
+    card: "summary_large_image",
+    title: "Skilvora - Platform Belajar Coding & IT",
+    description:
+      "Tingkatkan keahlian programming Anda dan raih sertifikat industri.",
   },
 };
 
@@ -34,24 +57,32 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className={jakarta.className}>
+      <body
+        className={`${bricolage.variable} ${geist.variable} ${geistMono.variable}`}
+      >
         {children}
-        <Toaster 
-          position="top-center" 
-          reverseOrder={false} 
+        <Toaster
+          position="top-right"
+          reverseOrder={false}
           toastOptions={{
             style: {
-              background: '#121214',
-              color: '#FAFAFA',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '8px',
-              fontSize: '14px',
+              background: "var(--surface-3)",
+              color: "var(--fg)",
+              border: "1px solid var(--line-strong)",
+              borderRadius: "8px",
+              fontSize: "14px",
             },
             success: {
-              iconTheme: { primary: '#3B82F6', secondary: '#FAFAFA' },
+              iconTheme: {
+                primary: "var(--success)",
+                secondary: "var(--surface-3)",
+              },
             },
             error: {
-              iconTheme: { primary: '#EF4444', secondary: '#FAFAFA' },
+              iconTheme: {
+                primary: "var(--danger)",
+                secondary: "var(--surface-3)",
+              },
             },
           }}
         />

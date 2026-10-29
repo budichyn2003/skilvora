@@ -66,22 +66,22 @@ export default function PaymentsPage() {
 
   if (isLoading)
     return (
-      <div className="animate-pulse bg-white/10 h-64 rounded-xl max-w-5xl"></div>
+      <div className="animate-pulse bg-surface-2 h-64 rounded-xl max-w-5xl"></div>
     );
 
   return (
     <div className="max-w-5xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#00033D] mb-2">
+        <h1 className="text-3xl font-bold text-fg mb-2">
           Tagihan & Pembayaran
         </h1>
-        <p className="text-[#00033D]/70">
+        <p className="text-muted">
           Kelola status pembayaran kelas berbayar Anda di sini.
         </p>
         {!paymentsEnabled && (
           <p
             role="status"
-            className="mt-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-800"
+            className="mt-4 rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm text-warning"
           >
             Pembayaran saat ini hanya prototipe dan belum dibuka. Jangan
             melakukan transfer atau mengirim bukti pembayaran.
@@ -91,13 +91,11 @@ export default function PaymentsPage() {
 
       {payments.length === 0 ? (
         <GlassCard className="p-12 text-center flex flex-col items-center">
-          <CreditCard className="w-16 h-16 text-[#00033D]/20 mb-4" />
-          <h3 className="text-xl font-bold text-[#00033D] mb-2">
+          <CreditCard className="w-16 h-16 text-fg/20 mb-4" />
+          <h3 className="text-xl font-bold text-fg mb-2">
             Tidak ada tagihan aktif
           </h3>
-          <p className="text-[#00033D]/60">
-            Anda belum mendaftar ke kelas berbayar.
-          </p>
+          <p className="text-muted">Anda belum mendaftar ke kelas berbayar.</p>
         </GlassCard>
       ) : (
         <div className="space-y-6">
@@ -109,14 +107,14 @@ export default function PaymentsPage() {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-bold ${
+                    className={`px-3 py-1 rounded-lg text-xs font-bold ${
                       item.status === "SUCCESS"
-                        ? "bg-green-100 text-green-700"
+                        ? "bg-success/10 text-success"
                         : item.status === "FAILED"
-                          ? "bg-red-100 text-red-700"
+                          ? "bg-danger/10 text-danger"
                           : item.proofUrl
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-orange-100 text-orange-700"
+                            ? "bg-warning/10 text-warning"
+                            : "bg-warning/10 text-warning"
                     }`}
                   >
                     {item.status === "SUCCESS"
@@ -127,15 +125,15 @@ export default function PaymentsPage() {
                           ? "Menunggu Verifikasi Admin"
                           : "Belum Dibayar"}
                   </span>
-                  <span className="text-xs text-[#00033D]/50">
+                  <span className="text-xs text-subtle">
                     Metode: {item.method}
                   </span>
                 </div>
 
-                <h3 className="text-xl font-bold text-[#00033D] mb-1">
+                <h3 className="text-xl font-bold text-fg mb-1">
                   {item.enrollment.class.title}
                 </h3>
-                <p className="text-lg font-bold text-[#0033FF]">
+                <p className="text-lg font-bold text-turbo">
                   Rp {Number(item.amount).toLocaleString("id-ID")}
                 </p>
               </div>
@@ -145,7 +143,7 @@ export default function PaymentsPage() {
                   item.status === "FAILED") &&
                   paymentsEnabled && (
                     <div className="flex flex-col gap-2 w-full md:w-80">
-                      <p className="text-xs font-semibold text-[#00033D]/70">
+                      <p className="text-xs font-semibold text-muted">
                         Transfer ke{" "}
                         {process.env.NEXT_PUBLIC_BANK_NAME ||
                           "rekening resmi Skilvora"}
@@ -157,7 +155,7 @@ export default function PaymentsPage() {
                           "Skilvora"}
                       </p>
                       {item.status === "FAILED" && item.reviewReason && (
-                        <p className="text-sm text-red-600">
+                        <p className="text-sm text-danger">
                           Alasan penolakan: {item.reviewReason}
                         </p>
                       )}
@@ -180,25 +178,25 @@ export default function PaymentsPage() {
                     </div>
                   )}
                 {item.status === "PENDING" && item.hasProof && (
-                  <div className="flex items-center gap-2 text-yellow-600 font-medium text-sm">
+                  <div className="flex items-center gap-2 text-warning font-medium text-sm">
                     <Clock className="w-5 h-5" /> Bukti sedang dicek admin.
                   </div>
                 )}
                 {((item.status === "PENDING" && !item.proofUrl) ||
                   item.status === "FAILED") &&
                   !paymentsEnabled && (
-                    <p className="text-sm font-medium text-amber-700">
+                    <p className="text-sm font-medium text-warning">
                       Pembayaran dinonaktifkan untuk prototipe.
                     </p>
                   )}
                 {item.status === "FAILED" && (
-                  <div className="flex items-center gap-2 text-red-600 font-medium text-sm">
+                  <div className="flex items-center gap-2 text-danger font-medium text-sm">
                     <XCircle className="w-5 h-5" /> Bukti ditolak. Kirim bukti
                     yang sesuai.
                   </div>
                 )}
                 {item.status === "SUCCESS" && (
-                  <div className="flex items-center gap-2 text-green-600 font-medium text-sm">
+                  <div className="flex items-center gap-2 text-success font-medium text-sm">
                     <CheckCircle2 className="w-5 h-5" /> Akses kelas sudah
                     terbuka!
                   </div>

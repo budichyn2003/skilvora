@@ -1,115 +1,105 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
   --color-muted: var(--muted);
-  --color-border: var(--border);
-  --color-input: var(--input);
-
-  /* Glass-specific tokens */
-  --color-glass: var(--glass);
-  --color-glass-border: var(--glass-border);
-  --color-glass-dark: var(--glass-dark);
-  --color-glass-dark-border: var(--glass-dark-border);
-  --color-glass-accent: var(--glass-accent);
-  --color-glass-accent-border: var(--glass-accent-border);
-
-  --radius-sm: calc(var(--radius) * 0.7);
-  --radius-md: calc(var(--radius) * 0.85);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.3);
-  --radius-2xl: calc(var(--radius) * 1.6);
-
-  --blur-glass: 24px;
+  --color-subtle: var(--subtle);
+  --color-turbo: var(--turbo);
+  --color-turbo-hover: var(--turbo-hover);
+  --color-turbo-press: var(--turbo-press);
+  --color-ink: var(--ink);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-border: var(--line);
+  --color-foreground: var(--fg);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--fg);
+  --color-muted-foreground: var(--muted);
+  --font-sans: var(--font-geist);
+  --font-display: var(--font-bricolage);
+  --font-mono: var(--font-geist-mono);
 }
 
 :root {
-  /* 06 - Base Surface */
-  --background: #FFFFFF;
-  /* 01 - Primary Dark Text */
-  --foreground: #00033D;
-
-  /* Card kini adalah permukaan kaca, bukan solid putih */
-  --card: rgba(255, 255, 255, 0.3);
-  --card-foreground: #00033D;
-
-  /* 02 - Primary Action (tetap solid untuk CTA agar tegas) */
-  --primary: #0033FF;
-  --primary-foreground: #FFFFFF;
-
-  /* 03 - Accent / Secondary */
-  --secondary: #977DFF;
-
-  /* 04 - Soft Neutral */
-  --muted: #EAEDFB;
-  --border: rgba(234, 237, 251, 0.5);
-  --input: rgba(255, 255, 255, 0.4);
-
-  /* 05 - Sidebar Dark Surface (glass gelap) */
-  --sidebar: rgba(3, 8, 18, 0.6);
-  --sidebar-foreground: #FFFFFF;
-  --sidebar-border: rgba(255, 255, 255, 0.1);
-
-  /* Glass surface variants */
-  --glass: rgba(255, 255, 255, 0.3);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --glass-dark: rgba(3, 8, 18, 0.5);
-  --glass-dark-border: rgba(255, 255, 255, 0.1);
-  --glass-accent: rgba(151, 125, 255, 0.15);
-  --glass-accent-border: rgba(151, 125, 255, 0.3);
-
-  --radius: 1rem;
+  color-scheme: dark;
+  --bg: #0a0a0a;
+  --surface: #111111;
+  --surface-2: #181818;
+  --surface-3: #202020;
+  --line: #262626;
+  --line-strong: #3a3a3a;
+  --fg: #f2f1ec;
+  --muted: #a3a29c;
+  --subtle: #8a8983;
+  --turbo: #f0e100;
+  --turbo-hover: #fff04d;
+  --turbo-press: #d6c800;
+  --ink: #0a0a0a;
+  --success: #4ade80;
+  --warning: #fb923c;
+  --danger: #ff5c5c;
 }
 
-@layer base {
-  * {
-    @apply border-border outline-none;
-  }
-
-  body {
-    @apply text-foreground antialiased;
-    /* Background bergradasi lembut sebagai dasar efek kaca —
-       tanpa ini, glassmorphism tidak akan terlihat transparan */
-    background-color: var(--background);
-    background-image:
-      radial-gradient(at 15% 0%, rgba(151, 125, 255, 0.12) 0px, transparent 50%),
-      radial-gradient(at 85% 10%, rgba(0, 51, 255, 0.10) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(234, 237, 251, 0.6) 0px, transparent 60%);
-    background-attachment: fixed;
-  }
+* {
+  box-sizing: border-box;
 }
 
-@layer utilities {
-  /* Reusable glass surface utilities agar konsisten dipakai lintas komponen */
-  .glass {
-    background-color: var(--glass);
-    backdrop-filter: blur(var(--blur-glass));
-    -webkit-backdrop-filter: blur(var(--blur-glass));
-    border: 1px solid var(--glass-border);
-  }
+html {
+  background: var(--bg);
+  scroll-behavior: smooth;
+}
 
-  .glass-dark {
-    background-color: var(--glass-dark);
-    backdrop-filter: blur(var(--blur-glass));
-    -webkit-backdrop-filter: blur(var(--blur-glass));
-    border: 1px solid var(--glass-dark-border);
-  }
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-geist), sans-serif;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
 
-  .glass-accent {
-    background-color: var(--glass-accent);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-accent-border);
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-bricolage), sans-serif;
+  letter-spacing: -0.035em;
+}
+
+::selection {
+  background: var(--turbo);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--turbo);
+  outline-offset: 3px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
