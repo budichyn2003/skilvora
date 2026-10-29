@@ -103,13 +103,13 @@ export class EnrollmentsController {
   @Get('payments/admin/:id/proof')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(Role.ADMIN)
-  async getPaymentProof(
-    @Param('id') id: string,
-    @Res() response: Response,
-  ) {
+  async getPaymentProof(@Param('id') id: string, @Res() response: Response) {
     const proof = await this.enrollmentsService.getPaymentProof(id);
     response.setHeader('Content-Type', proof.contentType);
-    response.setHeader('Content-Disposition', 'inline; filename="payment-proof"');
+    response.setHeader(
+      'Content-Disposition',
+      'inline; filename="payment-proof"',
+    );
     response.setHeader('Cache-Control', 'private, no-store');
     response.setHeader('X-Content-Type-Options', 'nosniff');
     response.send(proof.buffer);

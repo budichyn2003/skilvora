@@ -82,14 +82,14 @@ export class EnrollmentsService {
   }
 
   private presentPayment<T extends PaymentWithStorageFields>(payment: T) {
-    const { proofKey, proofUrl: _proofUrl, ...publicPayment } = payment;
+    const { proofKey, ...publicPayment } = payment;
     return {
       ...publicPayment,
       hasProof: Boolean(proofKey || payment.proofUrl),
       proofUrl:
         proofKey && payment.id
           ? `/enrollments/payments/admin/${payment.id}/proof`
-          : payment.proofUrl ?? null,
+          : (payment.proofUrl ?? null),
     };
   }
 
