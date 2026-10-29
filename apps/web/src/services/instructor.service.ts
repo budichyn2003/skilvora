@@ -47,6 +47,10 @@ export const InstructorService = {
     const response = await api.get(`/courses/instructor/classes/${id}`);
     return response.data;
   },
+  getClassAnalytics: async (classId: string) => {
+    const response = await api.get(`/courses/instructor/classes/${classId}/analytics`);
+    return response.data;
+  },
   createModule: async (classId: string, data: CreateModulePayload) => {
     const response = await api.post(`/modules/class/${classId}`, data);
     return response.data;
@@ -54,6 +58,9 @@ export const InstructorService = {
   deleteModule: async (moduleId: string) => {
     const response = await api.delete(`/modules/${moduleId}`);
     return response.data;
+  },
+  reorderModules: async (classId: string, moduleIds: string[]): Promise<void> => {
+    await api.patch(`/modules/class/${classId}/reorder`, { moduleIds });
   },
   createQuiz: async (classId: string, data: CreateQuizPayload) => {
     const response = await api.post(`/quizzes/instructor/class/${classId}`, data);

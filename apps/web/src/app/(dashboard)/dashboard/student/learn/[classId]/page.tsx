@@ -7,6 +7,7 @@ import { ArrowLeft, Award, CheckCircle2, Circle, Lock } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
+import { MarkdownViewer } from "@/components/ui/markdown-viewer";
 import { EnrollmentService } from "@/services/enrollment.service";
 import { getErrorMessage } from "@/lib/utils";
 
@@ -441,9 +442,11 @@ export default function LearningRoomPage() {
                 />
               </div>
             )}
-            <div className="prose prose-blue mb-12 max-w-none whitespace-pre-wrap text-fg/80">
-              {activeModule.content}
-            </div>
+            {activeModule.content ? (
+              <div className="mb-12">
+                <MarkdownViewer content={activeModule.content} />
+              </div>
+            ) : null}
             <div className="flex justify-end border-t border-line pt-6">
               <Button
                 onClick={handleMarkComplete}

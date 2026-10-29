@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -16,6 +17,10 @@ export class ModuleData {
 
 export class CreateModuleData extends ModuleData {
   declare title: string;
+}
+
+export class ReorderModulesData {
+  moduleIds!: string[];
 }
 
 @Injectable()
@@ -96,5 +101,49 @@ export class ModulesService {
     await this.verifyClassOwnership(existingModule.classId, userId, role);
 
     return this.prisma.module.delete({ where: { id } });
+  }
+
+  async reorder(
+    classId: string,
+    userId: string,
+    role: Role,
+    moduleIds: string[],
+  ) {
+    await this.verifyClassOwnership(classId, userId, role);
+
+    // Pastikan semua moduleId valid dan memang milik kelas ini
+    const existing = await this.prisma.module.findMany({
+      where: { classId },
+      select: { id: true },
+    });
+    const existingIds = new Set(existing.map((m) => m.id));
+    const allValid = moduleIds.every((id) => existingIds.has(id));
+    if (!allValid || moduleIds.length !== existing.length) {
+      throw new BadRequestException(
+        'Daftar modul tidak sesuai dengan kelas ini',
+      );
+    }
+
+    // Update order dalam satu transaksi untuk menghindari pelanggaran unique constraint
+    // Gunakan order negatif dulu agar tidak ada collision, lalu set order final
+    const negativeUpdates = moduleIds.map((id, index) =>
+      this.prisma.module.update({
+        where: { id },
+        data: { order: -(index + 1) },
+      }),
+    );
+    const positiveUpdates = moduleIds.map((id, index) =>
+      this.prisma.module.update({
+        where: { id },
+        data: { order: index + 1 },
+      }),
+    );
+
+    await this.prisma.$transaction([...negativeUpdates, ...positiveUpdates]);
+
+    return this.prisma.module.findMany({
+      where: { classId },
+      orderBy: { order: 'asc' },
+    });
   }
 }

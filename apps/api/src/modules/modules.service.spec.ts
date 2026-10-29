@@ -7,10 +7,12 @@ import { ModulesService } from './modules.service';
 describe('ModulesService', () => {
   let service: ModulesService;
   const prisma = {
+    $transaction: jest.fn(),
     class: { findUnique: jest.fn() },
     module: {
       findFirst: jest.fn(),
       findUnique: jest.fn(),
+      findMany: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -127,5 +129,37 @@ describe('ModulesService', () => {
       where: { id: 'module-1' },
       data: { title: 'Admin edit' },
     });
+  });
+
+  it('reorders modules within the class using a transaction', async () => {
+    prisma.class.findUnique.mockResolvedValue({
+      id: 'class-1',
+      instructorId: 'instructor-1',
+    });
+    prisma.module.findMany
+      .mockResolvedValueOnce([{ id: 'mod-1' }, { id: 'mod-2' }])
+      .mockResolvedValueOnce([
+        { id: 'mod-2', order: 1 },
+        { id: 'mod-1', order: 2 },
+      ]);
+    prisma.module.update.mockResolvedValue({ id: 'mod-updated' });
+    prisma.$transaction.mockResolvedValue([]);
+
+    const result = await service.reorder(
+      'class-1',
+      'instructor-1',
+      Role.INSTRUCTOR,
+      ['mod-2', 'mod-1'],
+    );
+
+    expect(prisma.module.findMany).toHaveBeenCalledWith({
+      where: { classId: 'class-1' },
+      select: { id: true },
+    });
+    expect(prisma.$transaction).toHaveBeenCalled();
+    expect(result).toEqual([
+      { id: 'mod-2', order: 1 },
+      { id: 'mod-1', order: 2 },
+    ]);
   });
 });

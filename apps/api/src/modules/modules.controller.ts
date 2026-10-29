@@ -12,6 +12,7 @@ import {
   ModulesService,
   CreateModuleData,
   ModuleData,
+  ReorderModulesData,
 } from './modules.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Role } from '@prisma/client';
@@ -37,6 +38,20 @@ export class ModulesController {
       req.user.id,
       req.user.role,
       createModuleDto,
+    );
+  }
+
+  @Patch('class/:classId/reorder')
+  reorder(
+    @Param('classId') classId: string,
+    @Body() reorderDto: ReorderModulesData,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.modulesService.reorder(
+      classId,
+      req.user.id,
+      req.user.role,
+      reorderDto.moduleIds,
     );
   }
 

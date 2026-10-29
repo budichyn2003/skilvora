@@ -11,6 +11,8 @@ import {
   Plus,
   Award,
   UploadCloud,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
@@ -97,6 +99,28 @@ export default function ManageClassContentPage() {
       await fetchCourse();
     } catch {
       toast.error("Gagal menghapus modul");
+    }
+  };
+
+  const handleMoveModule = async (moduleId: string, direction: "up" | "down") => {
+    if (!course) return;
+    const modules = [...course.modules].sort((a, b) => a.order - b.order);
+    const idx = modules.findIndex((m) => m.id === moduleId);
+    if (
+      (direction === "up" && idx === 0) ||
+      (direction === "down" && idx === modules.length - 1)
+    )
+      return;
+
+    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+    [modules[idx], modules[swapIdx]] = [modules[swapIdx], modules[idx]];
+    const orderedIds = modules.map((m) => m.id);
+
+    try {
+      await InstructorService.reorderModules(classId, orderedIds);
+      await fetchCourse();
+    } catch {
+      toast.error("Gagal mengubah urutan modul");
     }
   };
 
@@ -234,7 +258,23 @@ export default function ManageClassContentPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 self-end md:self-auto">
+                    <div className="flex items-center gap-1 self-end md:self-auto">
+                      <button
+                        onClick={() => handleMoveModule(modul.id, "up")}
+                        disabled={modul.order === 1}
+                        className="p-2 text-muted hover:text-turbo hover:bg-surface-2 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Pindah ke atas"
+                      >
+                        <ChevronUp className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleMoveModule(modul.id, "down")}
+                        disabled={modul.order === course.modules.length}
+                        className="p-2 text-muted hover:text-turbo hover:bg-surface-2 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Pindah ke bawah"
+                      >
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => handleDeleteModule(modul.id)}
                         className="p-2 text-muted hover:text-danger hover:bg-surface-2 rounded-lg transition-colors"

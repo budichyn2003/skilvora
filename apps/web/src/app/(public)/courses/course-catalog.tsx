@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useMemo, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { useCallback, useEffect, useState, useTransition } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { ArrowRight, ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 type Course = {
   id: string;
@@ -17,37 +18,78 @@ type Course = {
   _count?: { modules: number; enrollments: number };
 };
 
+type Meta = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+type Category = { id: string; name: string; slug: string };
+
+type CatalogPayload = {
+  data: Course[];
+  meta: Meta;
+  categories: Category[];
+};
+
 const levelLabels: Record<string, string> = {
   BEGINNER: "Pemula",
   INTERMEDIATE: "Menengah",
   ADVANCED: "Lanjutan",
 };
 
-export function CourseCatalog({ courses }: { courses: Course[] }) {
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("");
-  const [level, setLevel] = useState("");
+export function CourseCatalog({ payload }: { payload: CatalogPayload }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [, startTransition] = useTransition();
 
-  const categories = useMemo(
-    () => [
-      ...new Map(
-        courses
-          .filter((course) => course.category)
-          .map((course) => [course.category!.slug, course.category!]),
-      ).values(),
-    ],
-    [courses],
+  // Local state untuk debounce search
+  const [localQuery, setLocalQuery] = useState(
+    searchParams.get("search") ?? "",
   );
-  const filtered = courses.filter((course) => {
-    const matchesText = `${course.title} ${course.description || ""}`
-      .toLowerCase()
-      .includes(query.trim().toLowerCase());
-    return (
-      matchesText &&
-      (!category || course.category?.slug === category) &&
-      (!level || course.level === level)
-    );
-  });
+
+  // Build URL dengan search params baru
+  const buildUrl = useCallback(
+    (params: Record<string, string | undefined>) => {
+      const current = new URLSearchParams(searchParams.toString());
+      Object.entries(params).forEach(([key, value]) => {
+        if (value) current.set(key, value);
+        else current.delete(key);
+      });
+      // Reset ke halaman 1 jika filter berubah (bukan page change)
+      return `${pathname}?${current.toString()}`;
+    },
+    [pathname, searchParams],
+  );
+
+  const handleFilterChange = useCallback(
+    (params: Record<string, string | undefined>) => {
+      const newParams = { ...params, page: undefined }; // reset page
+      startTransition(() => {
+        router.push(buildUrl(newParams), { scroll: false });
+      });
+    },
+    [buildUrl, router],
+  );
+
+  // Debounce search input — tunggu 450ms sebelum push ke URL
+  useEffect(() => {
+    const id = setTimeout(() => {
+      const current = searchParams.get("search") ?? "";
+      if (localQuery !== current) {
+        handleFilterChange({ search: localQuery || undefined });
+      }
+    }, 450);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localQuery]);
+
+  const { data: courses, meta, categories } = payload;
+  const currentCategory = searchParams.get("category") ?? "";
+  const currentLevel = searchParams.get("level") ?? "";
+  const currentPage = meta.page;
 
   return (
     <div className="min-h-[calc(100vh-4rem)] py-14 sm:py-20">
@@ -65,6 +107,7 @@ export function CourseCatalog({ courses }: { courses: Course[] }) {
           </p>
         </header>
 
+        {/* Filter bar */}
         <section
           aria-label="Filter katalog kelas"
           className="mb-8 grid gap-3 border-b border-line pb-6 sm:grid-cols-[minmax(0,1fr)_220px_200px]"
@@ -73,13 +116,16 @@ export function CourseCatalog({ courses }: { courses: Course[] }) {
             <span className="mb-2 block font-mono text-xs uppercase tracking-wider text-subtle">
               Cari kelas
             </span>
-            <input
-              className="h-11 w-full rounded-lg border border-line bg-surface-2 px-4 text-sm text-fg placeholder:text-subtle transition-colors hover:border-line-strong focus-visible:border-turbo focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turbo/40"
-              type="search"
-              placeholder="Contoh: JavaScript"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" />
+              <input
+                className="h-11 w-full rounded-lg border border-line bg-surface-2 pl-9 pr-4 text-sm text-fg placeholder:text-subtle transition-colors hover:border-line-strong focus-visible:border-turbo focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turbo/40"
+                type="search"
+                placeholder="Contoh: JavaScript"
+                value={localQuery}
+                onChange={(e) => setLocalQuery(e.target.value)}
+              />
+            </div>
           </label>
           <label>
             <span className="mb-2 block font-mono text-xs uppercase tracking-wider text-subtle">
@@ -87,8 +133,12 @@ export function CourseCatalog({ courses }: { courses: Course[] }) {
             </span>
             <select
               className="h-11 w-full rounded-lg border border-line bg-surface-2 px-4 text-sm text-fg transition-colors hover:border-line-strong focus-visible:border-turbo focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turbo/40"
-              value={category}
-              onChange={(event) => setCategory(event.target.value)}
+              value={currentCategory}
+              onChange={(e) =>
+                handleFilterChange({
+                  category: e.target.value || undefined,
+                })
+              }
             >
               <option value="">Semua kategori</option>
               {categories.map((item) => (
@@ -104,8 +154,10 @@ export function CourseCatalog({ courses }: { courses: Course[] }) {
             </span>
             <select
               className="h-11 w-full rounded-lg border border-line bg-surface-2 px-4 text-sm text-fg transition-colors hover:border-line-strong focus-visible:border-turbo focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turbo/40"
-              value={level}
-              onChange={(event) => setLevel(event.target.value)}
+              value={currentLevel}
+              onChange={(e) =>
+                handleFilterChange({ level: e.target.value || undefined })
+              }
             >
               <option value="">Semua level</option>
               <option value="BEGINNER">Pemula</option>
@@ -117,10 +169,12 @@ export function CourseCatalog({ courses }: { courses: Course[] }) {
 
         <div className="mb-4 flex items-center justify-between font-mono text-xs uppercase tracking-wider text-subtle">
           <span>02 / Kelas tersedia</span>
-          <span>{filtered.length} hasil</span>
+          <span>
+            {meta.total} hasil (hal. {currentPage}/{meta.totalPages})
+          </span>
         </div>
 
-        {filtered.length === 0 ? (
+        {courses.length === 0 ? (
           <div className="border-y border-line py-10">
             <h2 className="font-display text-2xl font-medium">
               Kelas tidak ditemukan
@@ -131,13 +185,16 @@ export function CourseCatalog({ courses }: { courses: Course[] }) {
           </div>
         ) : (
           <ol className="border-t border-line">
-            {filtered.map((course, index) => (
+            {courses.map((course, index) => (
               <li
                 key={course.id}
                 className="grid gap-4 border-b border-line py-6 sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:items-center sm:gap-6 sm:py-7"
               >
                 <span className="font-mono text-xs text-subtle">
-                  {String(index + 1).padStart(2, "0")}
+                  {String((currentPage - 1) * meta.limit + index + 1).padStart(
+                    2,
+                    "0",
+                  )}
                 </span>
                 <div className="grid min-w-0 gap-4 sm:grid-cols-[minmax(0,1fr)_160px] sm:items-center">
                   <div className="min-w-0">
@@ -189,6 +246,85 @@ export function CourseCatalog({ courses }: { courses: Course[] }) {
               </li>
             ))}
           </ol>
+        )}
+
+        {/* Pagination */}
+        {meta.totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            <button
+              onClick={() =>
+                startTransition(() => {
+                  router.push(
+                    buildUrl({ page: String(currentPage - 1) }),
+                    { scroll: true },
+                  );
+                })
+              }
+              disabled={currentPage <= 1}
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-line bg-surface-2 text-muted transition-colors hover:border-line-strong hover:text-fg disabled:cursor-not-allowed disabled:opacity-40"
+              aria-label="Halaman sebelumnya"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+
+            {Array.from({ length: meta.totalPages }, (_, i) => i + 1)
+              .filter(
+                (p) =>
+                  p === 1 ||
+                  p === meta.totalPages ||
+                  Math.abs(p - currentPage) <= 1,
+              )
+              .reduce<(number | "…")[]>((acc, p, idx, arr) => {
+                if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("…");
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((item, idx) =>
+                item === "…" ? (
+                  <span
+                    key={`ellipsis-${idx}`}
+                    className="px-1 font-mono text-xs text-subtle"
+                  >
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={item}
+                    onClick={() =>
+                      startTransition(() => {
+                        router.push(buildUrl({ page: String(item) }), {
+                          scroll: true,
+                        });
+                      })
+                    }
+                    className={`flex h-10 w-10 items-center justify-center rounded-lg border font-mono text-xs transition-colors ${
+                      item === currentPage
+                        ? "border-turbo bg-turbo text-ink font-bold"
+                        : "border-line bg-surface-2 text-muted hover:border-line-strong hover:text-fg"
+                    }`}
+                    aria-current={item === currentPage ? "page" : undefined}
+                  >
+                    {item}
+                  </button>
+                ),
+              )}
+
+            <button
+              onClick={() =>
+                startTransition(() => {
+                  router.push(
+                    buildUrl({ page: String(currentPage + 1) }),
+                    { scroll: true },
+                  );
+                })
+              }
+              disabled={currentPage >= meta.totalPages}
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-line bg-surface-2 text-muted transition-colors hover:border-line-strong hover:text-fg disabled:cursor-not-allowed disabled:opacity-40"
+              aria-label="Halaman berikutnya"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         )}
       </div>
     </div>

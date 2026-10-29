@@ -5,12 +5,13 @@ import {
   Post,
   Patch,
   Body,
+  Query,
   UseGuards,
   Request,
 } from '@nestjs/common';
 import { CoursesService, CreateCourseData } from './courses.service';
 import { AuthGuard } from '@nestjs/passport';
-import { Role } from '@prisma/client';
+import { ClassLevel, Role } from '@prisma/client';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 
@@ -25,8 +26,34 @@ export class CoursesController {
   // ==========================================
 
   @Get()
-  async findAll() {
-    return this.coursesService.findAllPublished();
+  async findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('category') category?: string,
+    @Query('level') level?: ClassLevel,
+  ) {
+    return this.coursesService.findAllPublished({
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+      search,
+      category,
+      level,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN, Role.INSTRUCTOR)
+  @Get('instructor/classes/:id/analytics')
+  async getInstructorClassAnalytics(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.coursesService.getInstructorClassAnalytics(
+      id,
+      req.user.id,
+      req.user.role,
+    );
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)

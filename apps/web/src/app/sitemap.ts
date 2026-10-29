@@ -8,7 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     process.env.NEXT_PUBLIC_SITE_URL || "https://skilvora-omega.vercel.app/"
   ).replace(/\/+$/, "");
   const [coursesResponse, roadmapsResponse] = await Promise.all([
-    fetch(`${apiUrl}/courses`, { cache: "no-store" }),
+    fetch(`${apiUrl}/courses?limit=9999`, { cache: "no-store" }),
     fetch(`${apiUrl}/roadmaps`, { cache: "no-store" }),
   ]);
   if (!coursesResponse.ok || !roadmapsResponse.ok) {
@@ -17,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const [courses, roadmaps] = await Promise.all([
     coursesResponse.json() as Promise<
-      Array<{ slug: string; updatedAt?: string }>
+      { data: Array<{ slug: string; updatedAt?: string }> }
     >,
     roadmapsResponse.json() as Promise<
       Array<{ slug: string; updatedAt?: string }>
@@ -32,7 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...fixedRoutes,
-    ...courses.map((course) => ({
+    ...courses.data.map((course) => ({
       url: `${siteUrl}/courses/${encodeURIComponent(course.slug)}`,
       lastModified: course.updatedAt ? new Date(course.updatedAt) : undefined,
       changeFrequency: "weekly" as const,
