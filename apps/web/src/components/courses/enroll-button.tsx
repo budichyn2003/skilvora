@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { isAxiosError } from 'axios';
 import { Button } from '@/components/ui/button';
 import { EnrollmentService } from '@/services/enrollment.service';
 
@@ -23,12 +24,15 @@ export function EnrollButton({ classId, isFree }: EnrollButtonProps) {
       
       // Redirect ke dashboard untuk mulai belajar atau membayar
       router.push('/dashboard/classes');
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Gagal mendaftar kelas. Silakan login terlebih dahulu.';
-      toast.error(message);
+    } catch (error: unknown) {
+      const message = isAxiosError<{ message?: string }>(error)
+        ? error.response?.data?.message
+        : undefined;
+      const isUnauthorized = isAxiosError(error) && error.response?.status === 401;
+      toast.error(message || 'Gagal mendaftar kelas. Silakan login terlebih dahulu.');
       
-      if (error.response?.status === 401) {
-        router.push('/login');
+      if (isUnauthorized) {
+        router.push('/auth/login');
       }
     } finally {
       setIsLoading(false);

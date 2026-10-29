@@ -15,6 +15,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { EnrollmentsService } from './enrollments.service';
+import { PaymentProofStorageService } from './payment-proof-storage.service';
 
 jest.mock('@nestjs/config', () => ({
   ConfigService: class ConfigService {},
@@ -44,6 +45,14 @@ describe('EnrollmentsService', () => {
         EnrollmentsService,
         { provide: PrismaService, useValue: prisma },
         { provide: ConfigService, useValue: config },
+        {
+          provide: PaymentProofStorageService,
+          useValue: {
+            upload: jest.fn(),
+            download: jest.fn(),
+            delete: jest.fn(),
+          },
+        },
       ],
     }).compile();
     service = moduleRef.get(EnrollmentsService);
@@ -177,14 +186,19 @@ describe('EnrollmentsService', () => {
   });
 
   it('approves a verified payment and activates the enrollment atomically', async () => {
-    const approvedPayment = { id: 'payment-1', status: PaymentStatus.SUCCESS };
+    const approvedPayment = {
+      id: 'payment-1',
+      status: PaymentStatus.SUCCESS,
+      hasProof: false,
+      proofUrl: null,
+    };
     const transaction = {
       payment: {
         findUnique: jest.fn().mockResolvedValue({
           id: 'payment-1',
           enrollmentId: 'enrollment-1',
           status: PaymentStatus.PENDING,
-          proofUrl: 'https://files.example/proof.png',
+          proofKey: 'payment-proofs/payment-1/proof.png',
           enrollment: { status: EnrollmentStatus.PENDING },
         }),
         updateMany: jest.fn().mockResolvedValue({ count: 1 }),
@@ -238,7 +252,7 @@ describe('EnrollmentsService', () => {
           id: 'payment-1',
           enrollmentId: 'enrollment-1',
           status: PaymentStatus.PENDING,
-          proofUrl: 'https://files.example/proof.png',
+          proofKey: 'payment-proofs/payment-1/proof.png',
           enrollment: { status: EnrollmentStatus.PENDING },
         }),
         updateMany: jest.fn().mockResolvedValue({ count: 1 }),
@@ -328,7 +342,11 @@ describe('EnrollmentsService', () => {
       service.uploadPaymentProof(
         'student-2',
         'payment-1',
-        'https://files.example/proof.png',
+        {
+          buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+          mimetype: 'image/png',
+          size: 8,
+        },
       ),
     ).rejects.toBeInstanceOf(NotFoundException);
     expect(prisma.payment.findFirst).toHaveBeenCalledWith({
@@ -339,6 +357,7 @@ describe('EnrollmentsService', () => {
           status: EnrollmentStatus.PENDING,
         },
       },
+      select: { id: true, status: true, proofKey: true, proofUrl: true },
     });
   });
 });
