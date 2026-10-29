@@ -6,10 +6,15 @@ import { AuthService } from './auth.service';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
-  constructor(config: ConfigService, private readonly authService: AuthService) {
+  constructor(
+    config: ConfigService,
+    private readonly authService: AuthService,
+  ) {
     super({
-      clientID: config.get<string>('GOOGLE_CLIENT_ID') || 'oauth-not-configured',
-      clientSecret: config.get<string>('GOOGLE_CLIENT_SECRET') || 'oauth-not-configured',
+      clientID:
+        config.get<string>('GOOGLE_CLIENT_ID') || 'oauth-not-configured',
+      clientSecret:
+        config.get<string>('GOOGLE_CLIENT_SECRET') || 'oauth-not-configured',
       callbackURL: `${(config.get<string>('API_PUBLIC_URL') || 'http://localhost:3001').replace(/\/+$/, '')}/auth/google/callback`,
       scope: ['email', 'profile'],
     });
@@ -26,7 +31,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       photos?: Array<{ value: string }>;
     };
     const email = googleProfile.emails?.[0]?.value;
-    if (!email) throw new UnauthorizedException('Google tidak memberikan alamat email');
+    if (!email)
+      throw new UnauthorizedException('Google tidak memberikan alamat email');
 
     return this.authService.validateGoogleUser(
       email,

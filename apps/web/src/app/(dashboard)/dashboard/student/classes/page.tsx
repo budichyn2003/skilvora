@@ -7,8 +7,22 @@ import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { EnrollmentService } from "@/services/enrollment.service";
 
+type StudentEnrollment = {
+  id: string;
+  status: "PENDING" | "ACTIVE";
+  class: {
+    id: string;
+    title: string;
+    thumbnail?: string | null;
+  };
+  progresses: Array<{
+    id: string;
+    status: string;
+  }>;
+};
+
 export default function MyClassesPage() {
-  const [enrollments, setEnrollments] = useState<any[]>([]);
+  const [enrollments, setEnrollments] = useState<StudentEnrollment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -46,7 +60,7 @@ export default function MyClassesPage() {
           {enrollments.map((enrollment) => {
             const course = enrollment.class;
             const completed = enrollment.progresses.filter(
-              (p: any) => p.status === "COMPLETED",
+              (p) => p.status === "COMPLETED",
             ).length;
             const total = enrollment.progresses.length;
             const percentage =
@@ -59,35 +73,46 @@ export default function MyClassesPage() {
               >
                 <div className="h-40 bg-surface-2 relative">
                   {course.thumbnail && (
+                    /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={course.thumbnail}
                       alt={course.title}
                       className="w-full h-full object-cover"
                     />
                   )}
+                  <span className="absolute top-3 right-3 px-2 py-0.5 rounded text-[10px] font-bold bg-surface/80 backdrop-blur border border-line text-fg">
+                    {percentage === 100 ? "Selesai" : "Sedang Berjalan"}
+                  </span>
                 </div>
-                <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-lg font-bold text-fg mb-4">
-                    {course.title}
-                  </h3>
-                  <div className="mt-auto mb-6">
-                    <div className="flex justify-between text-xs font-semibold text-muted mb-2">
-                      <span>Progres Belajar</span>
-                      <span>{percentage}%</span>
-                    </div>
-                    <div className="w-full bg-surface-2 rounded-lg h-2">
-                      <div
-                        className="bg-turbo h-2 rounded-lg"
-                        style={{ width: `${percentage}%` }}
-                      ></div>
+
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h2 className="font-bold text-lg text-fg mb-4 line-clamp-2">
+                      {course.title}
+                    </h2>
+
+                    {/* Progress Bar */}
+                    <div className="space-y-1.5 mb-6">
+                      <div className="flex justify-between text-xs text-muted">
+                        <span>Progress Belajar</span>
+                        <span className="font-bold text-fg">{percentage}%</span>
+                      </div>
+                      <div className="w-full h-2 bg-surface-2 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-turbo transition-all duration-300"
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
                     </div>
                   </div>
 
-                  <Button className="w-full gap-2" asChild>
+                  <Button asChild className="w-full gap-2">
                     <Link
-                      href={`/dashboard/student/learn/${enrollment.classId}`}
+                      href={`/dashboard/student/learn/${course.id}`}
+                      className="flex items-center justify-center"
                     >
-                      <PlayCircle className="w-4 h-4" /> Lanjutkan Belajar
+                      <PlayCircle className="w-4 h-4" />
+                      Lanjutkan Belajar
                     </Link>
                   </Button>
                 </div>

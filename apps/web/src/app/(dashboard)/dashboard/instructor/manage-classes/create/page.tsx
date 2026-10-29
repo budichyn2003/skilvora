@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GlassCard } from "@/components/ui/glass-card";
 import { InstructorService } from "@/services/instructor.service";
+import { getErrorMessage } from "@/lib/utils";
 
 export default function CreateClassPage() {
   const router = useRouter();
@@ -31,8 +32,8 @@ export default function CreateClassPage() {
       await InstructorService.createClass(formData);
       toast.success("Kelas berhasil dibuat dan disimpan sebagai Draft!");
       router.push("/dashboard/instructor/manage-classes");
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Gagal membuat kelas");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Gagal membuat kelas"));
     } finally {
       setIsLoading(false);
     }

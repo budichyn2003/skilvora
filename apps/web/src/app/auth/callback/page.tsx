@@ -15,8 +15,10 @@ export default function OAuthCallbackPage() {
   useEffect(() => {
     const code = new URLSearchParams(window.location.search).get("code");
     if (!code) {
-      setError("Kode login tidak ditemukan. Silakan coba masuk kembali.");
-      return;
+      const timer = setTimeout(() => {
+        setError("Kode login tidak ditemukan. Silakan coba masuk kembali.");
+      }, 0);
+      return () => clearTimeout(timer);
     }
 
     AuthService.exchangeOAuthCode(code)

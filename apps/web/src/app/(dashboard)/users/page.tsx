@@ -18,14 +18,21 @@ async function getUsers() {
   return res.json();
 }
 
+type UserItem = {
+  id: string;
+  name?: string | null;
+  email: string;
+  role: string;
+};
+
 export default async function UsersPage() {
-  const users = await getUsers();
+  const users: UserItem[] = await getUsers();
 
   return (
     <div className="max-w-5xl">
       <h1 className="text-2xl font-bold text-fg mb-6">Manajemen Pengguna</h1>
       <div className="flex flex-col gap-4">
-        {users.map((user: any) => (
+        {users.map((user) => (
           <GlassCard
             key={user.id}
             className="p-4 flex justify-between items-center"

@@ -16,12 +16,28 @@ export class MailerService {
     }
   }
 
-  async sendVerification(to: string, name: string | null, url: string): Promise<void> {
-    await this.send(to, 'Verifikasi email Skilvora', `Halo ${name || 'Siswa'},\n\nVerifikasi akun Anda: ${url}\n\nTautan berlaku selama 24 jam.`);
+  async sendVerification(
+    to: string,
+    name: string | null,
+    url: string,
+  ): Promise<void> {
+    await this.send(
+      to,
+      'Verifikasi email Skilvora',
+      `Halo ${name || 'Siswa'},\n\nVerifikasi akun Anda: ${url}\n\nTautan berlaku selama 24 jam.`,
+    );
   }
 
-  async sendPasswordReset(to: string, name: string | null, url: string): Promise<void> {
-    await this.send(to, 'Reset password Skilvora', `Halo ${name || 'Siswa'},\n\nAtur ulang password Anda: ${url}\n\nTautan berlaku selama 1 jam. Jika Anda tidak meminta reset, abaikan email ini.`);
+  async sendPasswordReset(
+    to: string,
+    name: string | null,
+    url: string,
+  ): Promise<void> {
+    await this.send(
+      to,
+      'Reset password Skilvora',
+      `Halo ${name || 'Siswa'},\n\nAtur ulang password Anda: ${url}\n\nTautan berlaku selama 1 jam. Jika Anda tidak meminta reset, abaikan email ini.`,
+    );
   }
 
   private async send(to: string, subject: string, text: string): Promise<void> {

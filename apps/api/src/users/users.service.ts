@@ -1,4 +1,9 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Role } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
@@ -57,7 +62,13 @@ export class UsersService {
   async findOne(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      select: { id: true, name: true, email: true, role: true, emailVerifiedAt: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        emailVerifiedAt: true,
+      },
     });
     if (!user) throw new NotFoundException('Pengguna tidak ditemukan');
     return user;
@@ -72,7 +83,9 @@ export class UsersService {
     const role = dto.role === undefined ? undefined : this.parseRole(dto.role);
     const email = dto.email?.trim().toLowerCase();
     if (email && email !== existing.email) {
-      const emailOwner = await this.prisma.user.findUnique({ where: { email } });
+      const emailOwner = await this.prisma.user.findUnique({
+        where: { email },
+      });
       if (emailOwner) throw new ConflictException('Email sudah terdaftar');
     }
 
@@ -81,10 +94,18 @@ export class UsersService {
       data: {
         ...(email ? { email, emailVerifiedAt: null } : {}),
         ...(dto.name !== undefined ? { name: dto.name.trim() || null } : {}),
-        ...(dto.password ? { password: await bcrypt.hash(dto.password, 10) } : {}),
+        ...(dto.password
+          ? { password: await bcrypt.hash(dto.password, 10) }
+          : {}),
         ...(role ? { role } : {}),
       },
-      select: { id: true, email: true, name: true, role: true, emailVerifiedAt: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        emailVerifiedAt: true,
+      },
     });
   }
 
@@ -98,7 +119,9 @@ export class UsersService {
   }
 
   private parseRole(role: string | undefined): Role {
-    const parsedRole = Object.values(Role).find((candidate) => candidate === role);
+    const parsedRole = Object.values(Role).find(
+      (candidate) => candidate === role,
+    );
     if (parsedRole) return parsedRole;
     if (!role) return Role.STUDENT;
     throw new BadRequestException('Role pengguna tidak valid');

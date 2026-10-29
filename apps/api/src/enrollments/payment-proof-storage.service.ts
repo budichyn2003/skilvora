@@ -24,13 +24,20 @@ export type StoredPaymentProof = {
 };
 
 const MAX_PROOF_SIZE_BYTES = 5 * 1024 * 1024;
-const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const PNG_SIGNATURE = Buffer.from([
+  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+]);
 
 export function validatePaymentProof(file: PaymentProofUpload | undefined) {
   if (!file || !Buffer.isBuffer(file.buffer) || file.buffer.length === 0) {
-    throw new BadRequestException('Pilih file bukti pembayaran terlebih dahulu');
+    throw new BadRequestException(
+      'Pilih file bukti pembayaran terlebih dahulu',
+    );
   }
-  if (file.buffer.length > MAX_PROOF_SIZE_BYTES || file.size > MAX_PROOF_SIZE_BYTES) {
+  if (
+    file.buffer.length > MAX_PROOF_SIZE_BYTES ||
+    file.size > MAX_PROOF_SIZE_BYTES
+  ) {
     throw new BadRequestException('Ukuran bukti pembayaran maksimal 5 MB');
   }
 
@@ -80,7 +87,9 @@ export class PaymentProofStorageService {
       new GetObjectCommand({ Bucket: bucket, Key: key }),
     );
     if (!response.Body) {
-      throw new NotFoundException('Bukti pembayaran tidak ditemukan di storage');
+      throw new NotFoundException(
+        'Bukti pembayaran tidak ditemukan di storage',
+      );
     }
 
     return {

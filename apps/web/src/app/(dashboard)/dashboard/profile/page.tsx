@@ -7,6 +7,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/axios";
+import { getErrorMessage } from "@/lib/utils";
 
 export default function ProfileSettingsPage() {
   const [profile, setProfile] = useState({
@@ -47,8 +48,8 @@ export default function ProfileSettingsPage() {
         profilePicture: profile.profilePicture,
       });
       toast.success("Profil berhasil diperbarui!");
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Gagal menyimpan profil");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Gagal menyimpan profil"));
     } finally {
       setIsSaving(false);
     }

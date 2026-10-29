@@ -18,8 +18,8 @@ export default function VerifyEmailPage() {
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get("token");
     if (!token) {
-      setStatus("invalid");
-      return;
+      const timer = setTimeout(() => setStatus("invalid"), 0);
+      return () => clearTimeout(timer);
     }
     AuthService.verifyEmail(token)
       .then(() => setStatus("verified"))
@@ -33,7 +33,7 @@ export default function VerifyEmailPage() {
     try {
       const result = await AuthService.resendVerification(email);
       setResendMessage(result.message);
-    } catch (error) {
+    } catch {
       setResendMessage(
         "Email verifikasi belum dapat dikirim. Coba kembali beberapa saat lagi.",
       );
@@ -60,28 +60,41 @@ export default function VerifyEmailPage() {
           </>
         )}
         {status === "invalid" && (
-          <>
-            <p className="mb-5 text-muted">
-              Tautan tidak valid atau sudah kedaluwarsa. Minta tautan baru di
-              bawah.
+          <div className="space-y-6">
+            <p role="alert" className="text-danger">
+              Tautan verifikasi tidak valid atau sudah kedaluwarsa.
             </p>
             <form onSubmit={resend} className="space-y-4 text-left">
+              <label
+                htmlFor="resend-email"
+                className="font-mono text-xs uppercase tracking-[0.12em] text-subtle"
+              >
+                Kirim ulang tautan verifikasi
+              </label>
               <Input
+                id="resend-email"
                 type="email"
                 required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="nama@email.com"
-                aria-label="Alamat email"
               />
-              <Button type="submit" disabled={isResending} className="w-full">
+              <Button type="submit" className="w-full" disabled={isResending}>
                 {isResending ? "Mengirim..." : "Kirim ulang verifikasi"}
               </Button>
             </form>
             {resendMessage && (
-              <p className="mt-4 text-sm text-muted">{resendMessage}</p>
+              <p className="text-sm text-muted">{resendMessage}</p>
             )}
-          </>
+            <div>
+              <Link
+                href="/auth/login"
+                className="text-sm text-turbo hover:underline"
+              >
+                Kembali ke halaman login
+              </Link>
+            </div>
+          </div>
         )}
       </GlassCard>
     </main>

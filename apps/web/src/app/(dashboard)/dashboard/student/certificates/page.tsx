@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { EnrollmentService } from "@/services/enrollment.service";
+import { getErrorMessage } from "@/lib/utils";
 
 type Certificate = {
   id: string;
@@ -25,10 +26,8 @@ export default function CertificatesPage() {
   useEffect(() => {
     EnrollmentService.getMyCertificates()
       .then(setCertificates)
-      .catch((error: any) =>
-        setLoadError(
-          error.response?.data?.message || "Gagal memuat sertifikat.",
-        ),
+      .catch((error: unknown) =>
+        setLoadError(getErrorMessage(error, "Gagal memuat sertifikat.")),
       )
       .finally(() => setIsLoading(false));
   }, []);
@@ -43,9 +42,9 @@ export default function CertificatesPage() {
       link.download = `skilvora-${certificate.verificationCode}.pdf`;
       link.click();
       URL.revokeObjectURL(url);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(
-        error.response?.data?.message || "Gagal mengunduh PDF sertifikat.",
+        getErrorMessage(error, "Gagal mengunduh PDF sertifikat."),
       );
     } finally {
       setDownloadingId("");

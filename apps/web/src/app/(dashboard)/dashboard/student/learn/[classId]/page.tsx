@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { EnrollmentService } from "@/services/enrollment.service";
+import { getErrorMessage } from "@/lib/utils";
 
 type ModuleItem = {
   id: string;
@@ -39,6 +40,19 @@ type QuizData = {
   }>;
 };
 
+type QuizResult = {
+  score: number;
+  isPassed: boolean;
+  attempt: {
+    score: number;
+    isPassed: boolean;
+    attemptNumber: number;
+  };
+  certificate?: {
+    verificationCode: string;
+  };
+};
+
 type QuizTarget = { type: "MODULE"; moduleId: string } | { type: "FINAL" };
 
 export default function LearningRoomPage() {
@@ -50,7 +64,7 @@ export default function LearningRoomPage() {
   const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [quizError, setQuizError] = useState("");
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [quizResult, setQuizResult] = useState<any>(null);
+  const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmittingQuiz, setIsSubmittingQuiz] = useState(false);
 
@@ -79,10 +93,8 @@ export default function LearningRoomPage() {
           null
         );
       });
-    } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || "Gagal memuat ruang belajar",
-      );
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Gagal memuat ruang belajar"));
       setData(null);
     } finally {
       setIsLoading(false);
@@ -90,7 +102,7 @@ export default function LearningRoomPage() {
   }, [classId]);
 
   useEffect(() => {
-    fetchDetails();
+    void fetchDetails();
   }, [fetchDetails]);
 
   useEffect(() => {
@@ -116,9 +128,9 @@ export default function LearningRoomPage() {
             : current,
         );
       })
-      .catch((error: any) => {
+      .catch((error: unknown) => {
         toast.error(
-          error.response?.data?.message || "Gagal memperbarui progres belajar",
+          getErrorMessage(error, "Gagal memperbarui progres belajar"),
         );
       });
   }, [activeModule, data]);
@@ -126,17 +138,30 @@ export default function LearningRoomPage() {
   useEffect(() => {
     if (!quizTarget) return;
 
-    setQuizData(null);
-    setQuizError("");
-    setQuizResult(null);
-    setAnswers({});
-    const request =
-      quizTarget.type === "FINAL"
-        ? EnrollmentService.getQuiz(classId)
-        : EnrollmentService.getModuleQuiz(quizTarget.moduleId);
-    request.then(setQuizData).catch((error: any) => {
-      setQuizError(error.response?.data?.message || "Kuis belum tersedia.");
-    });
+    let ignore = false;
+    async function loadQuiz() {
+      setQuizData(null);
+      setQuizError("");
+      setQuizResult(null);
+      setAnswers({});
+
+      try {
+        const result =
+          quizTarget?.type === "FINAL"
+            ? await EnrollmentService.getQuiz(classId)
+            : await EnrollmentService.getModuleQuiz(quizTarget?.moduleId ?? "");
+        if (!ignore) setQuizData(result);
+      } catch (error: unknown) {
+        if (!ignore) {
+          setQuizError(getErrorMessage(error, "Kuis belum tersedia."));
+        }
+      }
+    }
+
+    void loadQuiz();
+    return () => {
+      ignore = true;
+    };
   }, [classId, quizTarget]);
 
   const isCompleted = (moduleId: string) =>
@@ -158,8 +183,8 @@ export default function LearningRoomPage() {
       );
       toast.success("Modul diselesaikan!");
       await fetchDetails();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Gagal memperbarui progres");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Gagal memperbarui progres"));
     }
   };
 
@@ -192,8 +217,8 @@ export default function LearningRoomPage() {
       } else {
         toast.error("Anda belum lulus. Tinjau materi dan coba kembali.");
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Gagal mengirim kuis");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Gagal mengirim kuis"));
     } finally {
       setIsSubmittingQuiz(false);
     }

@@ -1,5 +1,18 @@
-import { Controller, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
-import { ModulesService } from './modules.service';
+import {
+  Controller,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
+import {
+  ModulesService,
+  CreateModuleData,
+  ModuleData,
+} from './modules.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Role } from '@prisma/client';
 import { Roles } from '../auth/roles.decorator';
@@ -16,19 +29,29 @@ export class ModulesController {
   @Post('class/:classId')
   create(
     @Param('classId') classId: string,
-    @Body() createModuleDto: any,
+    @Body() createModuleDto: CreateModuleData,
     @Request() req: AuthenticatedRequest,
   ) {
-    return this.modulesService.create(classId, req.user.id, req.user.role, createModuleDto);
+    return this.modulesService.create(
+      classId,
+      req.user.id,
+      req.user.role,
+      createModuleDto,
+    );
   }
 
   @Patch(':id')
   update(
     @Param('id') id: string,
-    @Body() updateModuleDto: any,
+    @Body() updateModuleDto: ModuleData,
     @Request() req: AuthenticatedRequest,
   ) {
-    return this.modulesService.update(id, req.user.id, req.user.role, updateModuleDto);
+    return this.modulesService.update(
+      id,
+      req.user.id,
+      req.user.role,
+      updateModuleDto,
+    );
   }
 
   @Delete(':id')

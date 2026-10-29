@@ -1,19 +1,33 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { ClassLevel, Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+
+export class CreateCourseData {
+  title!: string;
+  description?: string;
+  level?: ClassLevel;
+  price?: number;
+  categoryId?: string;
+}
 
 @Injectable()
 export class CoursesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(instructorId: string, data: any) {
+  async create(instructorId: string, data: CreateCourseData) {
     let validCategoryId = data.categoryId;
 
     // Menangkap string kosong, undefined, atau nilai yang bukan string
     if (!validCategoryId || typeof validCategoryId !== 'string') {
       const defaultCategory = await this.prisma.category.findFirst();
       if (!defaultCategory) {
-        throw new Error('Kategori tidak ditemukan. Pastikan sudah melakukan seeding.');
+        throw new BadRequestException(
+          'Kategori tidak ditemukan. Pastikan sudah melakukan seeding.',
+        );
       }
       validCategoryId = defaultCategory.id;
     }
@@ -26,8 +40,8 @@ export class CoursesService {
         title: data.title,
         slug,
         description: data.description,
-        level: data.level,
-        price: Number(data.price),
+        level: data.level || ClassLevel.BEGINNER,
+        price: Number(data.price || 0),
         status: 'DRAFT',
         categoryId: validCategoryId,
         instructorId,
@@ -40,11 +54,14 @@ export class CoursesService {
       where: role === Role.ADMIN ? { id } : { id, instructorId },
       include: {
         modules: { orderBy: { order: 'asc' } },
-        quizzes: { include: { questions: true } }
-      }
+        quizzes: { include: { questions: true } },
+      },
     });
-    
-    if (!course) throw new NotFoundException('Kelas tidak ditemukan atau Anda tidak memiliki akses');
+
+    if (!course)
+      throw new NotFoundException(
+        'Kelas tidak ditemukan atau Anda tidak memiliki akses',
+      );
     return course;
   }
 
@@ -52,7 +69,7 @@ export class CoursesService {
     return this.prisma.class.findMany({
       where: role === Role.ADMIN ? {} : { instructorId },
       include: {
-        _count: { select: { modules: true, enrollments: true } }
+        _count: { select: { modules: true, enrollments: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -64,9 +81,9 @@ export class CoursesService {
       include: {
         instructor: { select: { name: true, profilePicture: true } },
         category: { select: { name: true, slug: true } },
-        _count: { select: { modules: true, enrollments: true } }
+        _count: { select: { modules: true, enrollments: true } },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -83,7 +100,7 @@ export class CoursesService {
             title: true,
             order: true,
             isFreePreview: true,
-          }
+          },
         },
       },
     });
@@ -96,21 +113,25 @@ export class CoursesService {
     const course = await this.prisma.class.findUnique({
       where: role === Role.ADMIN ? { id } : { id, instructorId },
       include: {
-        _count: { select: { modules: true } }
-      }
+        _count: { select: { modules: true } },
+      },
     });
 
     if (!course) {
-      throw new NotFoundException('Kelas tidak ditemukan atau Anda tidak memiliki akses');
+      throw new NotFoundException(
+        'Kelas tidak ditemukan atau Anda tidak memiliki akses',
+      );
     }
 
     if (course._count.modules === 0) {
-      throw new BadRequestException('Kelas harus memiliki setidaknya satu modul sebelum diterbitkan');
+      throw new BadRequestException(
+        'Kelas harus memiliki setidaknya satu modul sebelum diterbitkan',
+      );
     }
 
     return this.prisma.class.update({
       where: { id },
-      data: { status: 'PUBLISHED' }
+      data: { status: 'PUBLISHED' },
     });
   }
 }

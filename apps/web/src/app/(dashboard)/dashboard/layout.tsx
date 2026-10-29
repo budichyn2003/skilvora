@@ -56,7 +56,7 @@ export default function DashboardLayout({
   const handleLogout = async () => {
     try {
       await api.post("/auth/logout");
-    } catch (error) {
+    } catch {
       toast.error(
         "Sesi server tidak dapat diakhiri. Token lokal tetap dihapus.",
       );

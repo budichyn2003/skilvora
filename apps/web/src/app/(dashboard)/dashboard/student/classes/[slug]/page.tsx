@@ -1,11 +1,12 @@
 import { GlassCard } from "@/components/ui/glass-card";
 import { Button } from "@/components/ui/button";
 
-export default function LearningSpacePage({
+export default async function LearningSpacePage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
+  const { slug: _slug } = await params;
   return (
     <div className="flex flex-col lg:flex-row gap-6 max-w-7xl h-[calc(100vh-6rem)]">
       {/* Kolom Kiri: Video Player & Konten */}

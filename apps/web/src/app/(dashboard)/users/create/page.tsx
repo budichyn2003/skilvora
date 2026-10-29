@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-hot-toast";
+import { getErrorMessage } from "@/lib/utils";
 
 export default function CreateUserPage() {
   const router = useRouter();
@@ -30,10 +31,8 @@ export default function CreateUserPage() {
       await api.post("/users", formData);
       toast.success("Berhasil menambahkan user baru!");
       router.push("/dashboard/users"); // Kembali ke tabel setelah sukses
-    } catch (error: any) {
-      toast.error(
-        "Gagal: " + (error.response?.data?.message || "Terjadi kesalahan"),
-      );
+    } catch (error: unknown) {
+      toast.error("Gagal: " + getErrorMessage(error));
     } finally {
       setLoading(false);
     }

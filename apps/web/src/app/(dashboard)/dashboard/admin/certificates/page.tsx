@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Button } from "@/components/ui/button";
 import { EnrollmentService } from "@/services/enrollment.service";
+import { getErrorMessage } from "@/lib/utils";
 
 type AdminCertificate = {
   id: string;
@@ -25,15 +26,15 @@ export default function AdminCertificatesPage() {
     try {
       setCertificates(await EnrollmentService.getCertificatesForAdmin());
       setLoadError("");
-    } catch (error: any) {
-      setLoadError(error.response?.data?.message || "Gagal memuat sertifikat.");
+    } catch (error: unknown) {
+      setLoadError(getErrorMessage(error, "Gagal memuat sertifikat."));
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    load();
+    void load();
   }, []);
 
   const revoke = async (certificate: AdminCertificate) => {
@@ -47,10 +48,8 @@ export default function AdminCertificatesPage() {
       await EnrollmentService.revokeCertificate(certificate.id, reason);
       toast.success("Sertifikat dicabut dan audit tersimpan.");
       await load();
-    } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || "Gagal mencabut sertifikat.",
-      );
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Gagal mencabut sertifikat."));
     } finally {
       setRevokingId("");
     }

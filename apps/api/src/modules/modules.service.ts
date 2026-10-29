@@ -6,15 +6,17 @@ import {
 import { Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
-type ModuleData = {
+export class ModuleData {
   title?: string;
   order?: number;
   videoUrl?: string | null;
   content?: string | null;
   isFreePreview?: boolean;
-};
+}
 
-type CreateModuleData = Omit<ModuleData, 'title'> & { title: string };
+export class CreateModuleData extends ModuleData {
+  declare title: string;
+}
 
 @Injectable()
 export class ModulesService {

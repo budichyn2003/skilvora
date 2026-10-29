@@ -3,26 +3,33 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Plus, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GlassCard } from "@/components/ui/glass-card";
-import { InstructorService } from "@/services/instructor.service";
+import { InstructorService, QuizOption } from "@/services/instructor.service";
+import { getErrorMessage } from "@/lib/utils";
 
-type ModuleOption = { id: string; title: string };
+type QuestionState = {
+  question: string;
+  options: QuizOption[];
+  correctAnswer: string;
+};
 
 export default function ManageQuizPage() {
   const params = useParams();
-  const router = useRouter();
   const classId = params.id as string;
+  const router = useRouter();
 
+  const [modules, setModules] = useState<Array<{ id: string; title: string }>>(
+    [],
+  );
+  const [quizType, setQuizType] = useState<"FINAL" | "MODULE">("FINAL");
+  const [moduleId, setModuleId] = useState("");
   const [passingGrade, setPassingGrade] = useState(70);
   const [maxAttempts, setMaxAttempts] = useState(3);
-  const [quizType, setQuizType] = useState<"FINAL" | "MODULE">("FINAL");
-  const [modules, setModules] = useState<ModuleOption[]>([]);
-  const [moduleId, setModuleId] = useState("");
-  const [questions, setQuestions] = useState([
+  const [questions, setQuestions] = useState<QuestionState[]>([
     {
       question: "",
       options: [
@@ -42,22 +49,24 @@ export default function ManageQuizPage() {
         setModules(classModules);
         setModuleId((current) => current || classModules[0]?.id || "");
       })
-      .catch((error: any) =>
-        toast.error(
-          error.response?.data?.message || "Gagal memuat modul kelas",
-        ),
+      .catch((error: unknown) =>
+        toast.error(getErrorMessage(error, "Gagal memuat modul kelas")),
       );
   }, [classId]);
 
   useEffect(() => {
     if (quizType === "MODULE" && !moduleId) return;
-    setIsFetching(true);
-    InstructorService.getQuiz(
-      classId,
-      quizType,
-      quizType === "MODULE" ? moduleId : undefined,
-    )
-      .then((quiz) => {
+    let isCancelled = false;
+
+    async function loadQuiz() {
+      setIsFetching(true);
+      try {
+        const quiz = await InstructorService.getQuiz(
+          classId,
+          quizType,
+          quizType === "MODULE" ? moduleId : undefined,
+        );
+        if (isCancelled) return;
         if (!quiz) {
           setQuestions([
             {
@@ -77,14 +86,20 @@ export default function ManageQuizPage() {
         setMaxAttempts(quiz.maxAttempts);
         if (quiz.questions?.length) {
           setQuestions(
-            quiz.questions.map((question: any) => ({
-              question: question.question,
-              options:
-                typeof question.options === "string"
-                  ? JSON.parse(question.options)
-                  : question.options,
-              correctAnswer: question.correctAnswer,
-            })),
+            quiz.questions.map(
+              (question: {
+                question: string;
+                options: unknown;
+                correctAnswer: string;
+              }) => ({
+                question: question.question,
+                options:
+                  typeof question.options === "string"
+                    ? (JSON.parse(question.options) as QuizOption[])
+                    : (question.options as QuizOption[]),
+                correctAnswer: question.correctAnswer,
+              }),
+            ),
           );
         } else {
           setQuestions([
@@ -98,25 +113,31 @@ export default function ManageQuizPage() {
             },
           ]);
         }
-      })
-      .catch((error: any) => {
-        if (error.response?.status !== 404) {
-          toast.error(error.response?.data?.message || "Gagal memuat kuis");
+      } catch (error: unknown) {
+        if (!isCancelled) {
+          toast.error(getErrorMessage(error, "Gagal memuat kuis"));
+          setQuestions([
+            {
+              question: "",
+              options: [
+                { id: "A", text: "" },
+                { id: "B", text: "" },
+              ],
+              correctAnswer: "A",
+            },
+          ]);
+          setPassingGrade(70);
+          setMaxAttempts(3);
         }
-        setQuestions([
-          {
-            question: "",
-            options: [
-              { id: "A", text: "" },
-              { id: "B", text: "" },
-            ],
-            correctAnswer: "A",
-          },
-        ]);
-        setPassingGrade(70);
-        setMaxAttempts(3);
-      })
-      .finally(() => setIsFetching(false));
+      } finally {
+        if (!isCancelled) setIsFetching(false);
+      }
+    }
+
+    void loadQuiz();
+    return () => {
+      isCancelled = true;
+    };
   }, [classId, quizType, moduleId]);
 
   const handleAddQuestion = () => {
@@ -146,7 +167,6 @@ export default function ManageQuizPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // Backend akan melakukan UPSERT (Update jika ada, Insert jika baru)
       await InstructorService.createQuiz(classId, {
         type: quizType,
         ...(quizType === "MODULE" ? { moduleId } : {}),
@@ -156,8 +176,8 @@ export default function ManageQuizPage() {
       });
       toast.success("Kuis berhasil disimpan!");
       router.push(`/dashboard/instructor/manage-classes/${classId}`);
-    } catch (error) {
-      toast.error("Gagal menyimpan kuis");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Gagal menyimpan kuis"));
     } finally {
       setIsSubmitting(false);
     }

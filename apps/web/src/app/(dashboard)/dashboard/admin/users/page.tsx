@@ -6,6 +6,7 @@ import { api } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Input } from "@/components/ui/input";
+import { getErrorMessage } from "@/lib/utils";
 
 type UserSummary = {
   id: string;
@@ -30,15 +31,15 @@ export default function AdminUsersPage() {
     try {
       const { data } = await api.get<UserSummary[]>("/users");
       setUsers(data);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Gagal memuat pengguna");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Gagal memuat pengguna"));
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    loadUsers();
+    void loadUsers();
   }, []);
 
   const createUser = async (event: FormEvent) => {
@@ -49,8 +50,8 @@ export default function AdminUsersPage() {
       setForm({ name: "", email: "", password: "", role: "INSTRUCTOR" });
       toast.success("Akun berhasil dibuat dan diverifikasi oleh admin.");
       await loadUsers();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Gagal membuat akun");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Gagal membuat akun"));
     } finally {
       setIsSaving(false);
     }

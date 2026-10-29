@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { QuizType, Role } from '@prisma/client';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
@@ -29,15 +38,25 @@ export class QuizzesController {
   createClassQuiz(
     @Param('classId') classId: string,
     @Req() request: AuthenticatedRequest,
-    @Body() data: {
+    @Body()
+    data: {
       type?: QuizType;
       moduleId?: string;
       passingGrade?: number;
       maxAttempts?: number;
-      questions?: { question: string; options: { id: string; text: string }[]; correctAnswer: string }[];
+      questions?: {
+        question: string;
+        options: { id: string; text: string }[];
+        correctAnswer: string;
+      }[];
     },
   ) {
-    return this.quizzesService.createQuiz(request.user.id, request.user.role, classId, data);
+    return this.quizzesService.createQuiz(
+      request.user.id,
+      request.user.role,
+      classId,
+      data,
+    );
   }
 
   @Get('instructor/class/:classId')
@@ -65,7 +84,10 @@ export class QuizzesController {
     @Param('moduleId') moduleId: string,
     @Req() request: AuthenticatedRequest,
   ) {
-    return this.quizzesService.getModuleQuizForStudent(request.user.id, moduleId);
+    return this.quizzesService.getModuleQuizForStudent(
+      request.user.id,
+      moduleId,
+    );
   }
 
   @Get('class/:classId')

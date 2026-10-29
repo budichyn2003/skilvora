@@ -6,6 +6,7 @@ import { AuthService } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Input } from "@/components/ui/input";
+import { getErrorMessage } from "@/lib/utils";
 
 export default function ResetPasswordPage() {
   const [token, setToken] = useState("");
@@ -16,7 +17,10 @@ export default function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    setToken(new URLSearchParams(window.location.search).get("token") || "");
+    const tokenParam =
+      new URLSearchParams(window.location.search).get("token") || "";
+    const timer = setTimeout(() => setToken(tokenParam), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const submit = async (event: React.FormEvent) => {
@@ -33,10 +37,12 @@ export default function ResetPasswordPage() {
       setMessage(
         "Password berhasil diperbarui. Silakan masuk dengan password baru.",
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       setMessage(
-        error.response?.data?.message ||
+        getErrorMessage(
+          error,
           "Tautan reset tidak valid atau sudah kedaluwarsa.",
+        ),
       );
     } finally {
       setIsLoading(false);
@@ -63,30 +69,29 @@ export default function ResetPasswordPage() {
             required
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
-            placeholder="Konfirmasi password baru"
-            aria-label="Konfirmasi password baru"
+            placeholder="Ulangi password baru"
+            aria-label="Ulangi password baru"
           />
-          <Button
-            type="submit"
-            disabled={isLoading || isComplete}
-            className="w-full"
-          >
+          {message && (
+            <p
+              role="alert"
+              className={`text-sm ${isComplete ? "text-success" : "text-danger"}`}
+            >
+              {message}
+            </p>
+          )}
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Menyimpan..." : "Simpan password baru"}
           </Button>
         </form>
-        {message && (
-          <p role="status" className="mt-4 text-sm text-muted">
-            {message}
-          </p>
-        )}
-        {isComplete && (
+        <div className="mt-6 text-center">
           <Link
             href="/auth/login"
-            className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-turbo hover:text-fg"
+            className="text-sm text-muted hover:text-turbo"
           >
-            Masuk
+            Kembali ke login
           </Link>
-        )}
+        </div>
       </GlassCard>
     </main>
   );

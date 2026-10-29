@@ -14,7 +14,10 @@ import { createHash, randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailerService } from './mailer.service';
 
-type SafeUser = Pick<User, 'id' | 'email' | 'name' | 'role' | 'emailVerifiedAt' | 'profilePicture'>;
+type SafeUser = Pick<
+  User,
+  'id' | 'email' | 'name' | 'role' | 'emailVerifiedAt' | 'profilePicture'
+>;
 
 @Injectable()
 export class AuthService {
@@ -35,7 +38,9 @@ export class AuthService {
     }
     this.mailer.assertConfigured();
 
-    const existing = await this.prisma.user.findUnique({ where: { email: normalizedEmail } });
+    const existing = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
     if (existing) throw new ConflictException('Email sudah terdaftar');
 
     const user = await this.prisma.user.create({
@@ -63,12 +68,16 @@ export class AuthService {
     };
   }
 
-  async validateUser(email: string, password: string): Promise<SafeUser | null> {
+  async validateUser(
+    email: string,
+    password: string,
+  ): Promise<SafeUser | null> {
     const user = await this.prisma.user.findUnique({
       where: { email: email.trim().toLowerCase() },
     });
 
-    if (!user?.password || !(await bcrypt.compare(password, user.password))) return null;
+    if (!user?.password || !(await bcrypt.compare(password, user.password)))
+      return null;
     return this.toSafeUser(user);
   }
 
@@ -79,7 +88,9 @@ export class AuthService {
 
     const refreshToken = randomBytes(48).toString('hex');
     await this.prisma.$transaction([
-      this.prisma.authToken.deleteMany({ where: { expiresAt: { lte: new Date() } } }),
+      this.prisma.authToken.deleteMany({
+        where: { expiresAt: { lte: new Date() } },
+      }),
       this.prisma.authToken.create({
         data: {
           tokenHash: this.hashToken(refreshToken),
@@ -102,11 +113,18 @@ export class AuthService {
     };
   }
 
-  async validateGoogleUser(email: string, name: string | null, profilePicture: string | null) {
+  async validateGoogleUser(
+    email: string,
+    name: string | null,
+    profilePicture: string | null,
+  ) {
     const normalizedEmail = email.trim().toLowerCase();
     const user = await this.prisma.user.upsert({
       where: { email: normalizedEmail },
-      update: { emailVerifiedAt: new Date(), ...(profilePicture ? { profilePicture } : {}) },
+      update: {
+        emailVerifiedAt: new Date(),
+        ...(profilePicture ? { profilePicture } : {}),
+      },
       create: {
         email: normalizedEmail,
         name,
@@ -130,8 +148,11 @@ export class AuthService {
     const stored = await this.findValidToken(rawCode, AuthTokenType.OAUTH_CODE);
     const refreshToken = randomBytes(48).toString('hex');
     await this.prisma.$transaction(async (transaction) => {
-      const consumed = await transaction.authToken.deleteMany({ where: { id: stored.id } });
-      if (consumed.count !== 1) throw new UnauthorizedException('Kode login telah digunakan');
+      const consumed = await transaction.authToken.deleteMany({
+        where: { id: stored.id },
+      });
+      if (consumed.count !== 1)
+        throw new UnauthorizedException('Kode login telah digunakan');
       await transaction.authToken.create({
         data: {
           tokenHash: this.hashToken(refreshToken),
@@ -146,12 +167,20 @@ export class AuthService {
     return {
       access_token: this.createAccessToken(user),
       refreshToken,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
     };
   }
 
   async verifyEmail(rawToken: string): Promise<void> {
-    const token = await this.findValidToken(rawToken, AuthTokenType.EMAIL_VERIFICATION);
+    const token = await this.findValidToken(
+      rawToken,
+      AuthTokenType.EMAIL_VERIFICATION,
+    );
     await this.prisma.$transaction([
       this.prisma.user.update({
         where: { id: token.userId },
@@ -165,32 +194,49 @@ export class AuthService {
 
   async resendVerification(email: string): Promise<{ message: string }> {
     const normalizedEmail = email.trim().toLowerCase();
-    const user = await this.prisma.user.findUnique({ where: { email: normalizedEmail } });
+    const user = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
 
     if (user && !user.emailVerifiedAt) {
       this.mailer.assertConfigured();
       await this.sendVerification(user);
     }
-    return { message: 'Jika akun belum diverifikasi, tautan verifikasi telah dikirim.' };
+    return {
+      message: 'Jika akun belum diverifikasi, tautan verifikasi telah dikirim.',
+    };
   }
 
   async requestPasswordReset(email: string): Promise<{ message: string }> {
     this.mailer.assertConfigured();
     const normalizedEmail = email.trim().toLowerCase();
-    const user = await this.prisma.user.findUnique({ where: { email: normalizedEmail } });
+    const user = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
 
     if (user) {
-      const rawToken = await this.issueToken(user.id, AuthTokenType.PASSWORD_RESET, this.expiresInHours(1));
+      const rawToken = await this.issueToken(
+        user.id,
+        AuthTokenType.PASSWORD_RESET,
+        this.expiresInHours(1),
+      );
       const url = `${this.webAppUrl()}/auth/reset-password?token=${encodeURIComponent(rawToken)}`;
       await this.mailer.sendPasswordReset(user.email, user.name, url);
     }
 
-    return { message: 'Jika email terdaftar, tautan untuk mengatur ulang password telah dikirim.' };
+    return {
+      message:
+        'Jika email terdaftar, tautan untuk mengatur ulang password telah dikirim.',
+    };
   }
 
   async resetPassword(rawToken: string, password: string): Promise<void> {
-    if (password.length < 8) throw new BadRequestException('Password minimal 8 karakter');
-    const token = await this.findValidToken(rawToken, AuthTokenType.PASSWORD_RESET);
+    if (password.length < 8)
+      throw new BadRequestException('Password minimal 8 karakter');
+    const token = await this.findValidToken(
+      rawToken,
+      AuthTokenType.PASSWORD_RESET,
+    );
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await this.prisma.$transaction([
@@ -201,7 +247,9 @@ export class AuthService {
       this.prisma.authToken.deleteMany({
         where: {
           userId: token.userId,
-          type: { in: [AuthTokenType.PASSWORD_RESET, AuthTokenType.REFRESH_SESSION] },
+          type: {
+            in: [AuthTokenType.PASSWORD_RESET, AuthTokenType.REFRESH_SESSION],
+          },
         },
       }),
     ]);
@@ -218,7 +266,10 @@ export class AuthService {
       },
       include: { user: true },
     });
-    if (!stored) throw new UnauthorizedException('Sesi telah berakhir. Silakan masuk kembali.');
+    if (!stored)
+      throw new UnauthorizedException(
+        'Sesi telah berakhir. Silakan masuk kembali.',
+      );
 
     const refreshToken = randomBytes(48).toString('hex');
     await this.prisma.$transaction([
@@ -236,7 +287,12 @@ export class AuthService {
     return {
       access_token: this.createAccessToken(user),
       refreshToken,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
     };
   }
 
@@ -256,13 +312,19 @@ export class AuthService {
     return this.toSafeUser(user);
   }
 
-  async updateProfile(userId: string, name: string, profilePicture?: string | null): Promise<SafeUser> {
+  async updateProfile(
+    userId: string,
+    name: string,
+    profilePicture?: string | null,
+  ): Promise<SafeUser> {
     if (!name.trim()) throw new BadRequestException('Nama wajib diisi');
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: {
         name: name.trim(),
-        ...(profilePicture !== undefined ? { profilePicture: profilePicture || null } : {}),
+        ...(profilePicture !== undefined
+          ? { profilePicture: profilePicture || null }
+          : {}),
       },
     });
     return this.toSafeUser(user);
@@ -285,7 +347,9 @@ export class AuthService {
   ): Promise<string> {
     const rawToken = randomBytes(32).toString('hex');
     await this.prisma.$transaction([
-      this.prisma.authToken.deleteMany({ where: { expiresAt: { lte: new Date() } } }),
+      this.prisma.authToken.deleteMany({
+        where: { expiresAt: { lte: new Date() } },
+      }),
       this.prisma.authToken.deleteMany({ where: { userId, type } }),
       this.prisma.authToken.create({
         data: { tokenHash: this.hashToken(rawToken), type, userId, expiresAt },
@@ -304,7 +368,10 @@ export class AuthService {
       },
       include: { user: true },
     });
-    if (!token) throw new BadRequestException('Tautan tidak valid atau sudah kedaluwarsa');
+    if (!token)
+      throw new BadRequestException(
+        'Tautan tidak valid atau sudah kedaluwarsa',
+      );
     return token;
   }
 
@@ -332,7 +399,9 @@ export class AuthService {
   }
 
   private webAppUrl(): string {
-    return (this.config.get<string>('WEB_APP_URL') || 'http://localhost:3000').replace(/\/+$/, '');
+    return (
+      this.config.get<string>('WEB_APP_URL') || 'http://localhost:3000'
+    ).replace(/\/+$/, '');
   }
 
   private expiresInHours(hours: number): Date {
